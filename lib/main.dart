@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'app.dart';
+import 'providers/favorites_provider.dart';
+import 'providers/wallpaper_provider.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final favoritesProvider = FavoritesProvider();
+  await favoritesProvider.loadFromPrefs();
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -16,5 +23,14 @@ void main() {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
-  runApp(const WcWallpapersApp());
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: favoritesProvider),
+        ChangeNotifierProvider(create: (_) => WallpaperProvider()),
+      ],
+      child: const WcWallpapersApp(),
+    ),
+  );
 }

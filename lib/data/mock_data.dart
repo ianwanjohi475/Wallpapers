@@ -401,6 +401,15 @@ class MockData {
   static List<WallpaperModel> getFavorites() => List.unmodifiable(_favorites);
   static List<WallpaperModel> getSearchResults() => List.unmodifiable(_searchResults);
 
+  static List<WallpaperModel> getAll() => [
+        ..._featured,
+        ..._newToday,
+        ..._mostDownloaded,
+        ..._browseAll,
+        ..._searchResults,
+        ..._favorites,
+      ];
+
   static List<WallpaperModel> getByCategory(String cat) {
     if (cat == 'All') return getBrowseAll();
     return getBrowseAll().where((w) => w.category == cat.toLowerCase()).toList();
