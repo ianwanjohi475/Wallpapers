@@ -1,0 +1,39 @@
+name: wallpapersthemes
+description: WC Wallpapers 2026 - World Cup wallpaper app.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  google_fonts: ^6.2.1
+  cached_network_image: ^3.3.1
+  flutter_staggered_grid_view: ^0.7.0
+  shimmer: ^3.0.0
+  smooth_page_indicator: ^1.1.0
+  animations: ^2.0.11
+  shared_preferences: ^2.3.1
+  share_plus: ^10.0.0
+  lottie: ^3.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Rajdhani
+      fonts:
+        - asset: assets/fonts/Rajdhani-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Rajdhani-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Rajdhani-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Rajdhani-Bold.ttf
+          weight: 700
