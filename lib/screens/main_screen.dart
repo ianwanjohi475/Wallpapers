@@ -39,7 +39,10 @@ class _MainScreenState extends State<MainScreen> {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      body: Stack(
+      body: SafeArea(
+        top: true,
+        bottom: false,
+        child: Stack(
         children: [
           IndexedStack(
             index: _selectedIndex,
@@ -83,6 +86,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

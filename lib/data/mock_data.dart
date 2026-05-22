@@ -6,7 +6,7 @@ class MockData {
     WallpaperModel(
       id: 'f1',
       title: 'Lusail Finals',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/epic%20stadium%20at%20night%20with%20golden%20lights%20and%20fireworks',
+      imageUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=800&q=80',
       category: 'stadiums',
       isPremium: false,
       isFeatured: true,
@@ -17,7 +17,7 @@ class MockData {
     WallpaperModel(
       id: 'f2',
       title: 'The Golden Goal',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/world%20cup%20trophy%20golden%20glow%20dark%20background',
+      imageUrl: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=800&q=80',
       category: 'trophies',
       isPremium: false,
       isFeatured: true,
@@ -28,7 +28,7 @@ class MockData {
     WallpaperModel(
       id: 'f3',
       title: 'Messiah Magic',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/professional%20football%20player%20silhouette%20neon%20lights',
+      imageUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80',
       category: 'legends',
       isPremium: true,
       isFeatured: true,
@@ -39,7 +39,7 @@ class MockData {
     WallpaperModel(
       id: 'f4',
       title: 'Hyper Gold',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/hyper-realistic%20golden%20football',
+      imageUrl: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=800&q=80',
       category: 'abstract',
       isPremium: true,
       isFeatured: true,
@@ -50,7 +50,7 @@ class MockData {
     WallpaperModel(
       id: 'f5',
       title: 'Galaxy Cup',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/world%20cup%20trophy%20galaxy%20background',
+      imageUrl: 'https://images.unsplash.com/photo-1486286701208-1d58e9338013?auto=format&fit=crop&w=800&q=80',
       category: 'trophies',
       isPremium: true,
       isFeatured: true,
@@ -64,7 +64,7 @@ class MockData {
     WallpaperModel(
       id: 'n1',
       title: 'Brazil Neon',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/neon%20football%20flag%20brazil',
+      imageUrl: 'https://images.unsplash.com/photo-1434648957308-5e6a859697e8?auto=format&fit=crop&w=800&q=80',
       category: 'flags',
       isPremium: false,
       isFeatured: false,
@@ -75,7 +75,7 @@ class MockData {
     WallpaperModel(
       id: 'n2',
       title: 'Pitch Lines',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/minimalist%20soccer%20pitch%20art',
+      imageUrl: 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=800&q=80',
       category: 'abstract',
       isPremium: true,
       isFeatured: false,
@@ -86,7 +86,7 @@ class MockData {
     WallpaperModel(
       id: 'n3',
       title: 'Fire Football',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/abstract%20fire%20football',
+      imageUrl: 'https://images.unsplash.com/photo-1551958219-acbc595b6c4e?auto=format&fit=crop&w=800&q=80',
       category: 'abstract',
       isPremium: false,
       isFeatured: false,
@@ -100,7 +100,7 @@ class MockData {
     WallpaperModel(
       id: 'g1',
       title: 'Golden Football',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/hyper-realistic%20golden%20football',
+      imageUrl: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=800&q=80',
       category: 'abstract',
       isPremium: true,
       isFeatured: false,
@@ -111,7 +111,7 @@ class MockData {
     WallpaperModel(
       id: 'g2',
       title: 'Stadium Crowd',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/stadium%20crowd%20cheering%20bokeh',
+      imageUrl: 'https://images.unsplash.com/photo-1521537634581-0dced2fee2ef?auto=format&fit=crop&w=800&q=80',
       category: 'stadiums',
       isPremium: false,
       isFeatured: false,
@@ -122,7 +122,7 @@ class MockData {
     WallpaperModel(
       id: 'g3',
       title: 'Jersey Texture',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/player%20jersey%20close%20up%20texture',
+      imageUrl: 'https://images.unsplash.com/photo-1567447838040-5dc2dca0b92b?auto=format&fit=crop&w=800&q=80',
       category: 'teams',
       isPremium: false,
       isFeatured: false,
@@ -133,7 +133,7 @@ class MockData {
     WallpaperModel(
       id: 'g4',
       title: 'Neon Goal Post',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/neon%20goal%20post%20lights',
+      imageUrl: 'https://images.unsplash.com/photo-1432553759672-4b1e91b8ccf4?auto=format&fit=crop&w=800&q=80',
       category: 'neon',
       isPremium: false,
       isFeatured: false,
@@ -144,7 +144,7 @@ class MockData {
     WallpaperModel(
       id: 'g5',
       title: 'Galaxy Trophy',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/world%20cup%20trophy%20galaxy%20background',
+      imageUrl: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=800&q=80',
       category: 'trophies',
       isPremium: true,
       isFeatured: false,
@@ -155,7 +155,7 @@ class MockData {
     WallpaperModel(
       id: 'g6',
       title: 'Blueprint Art',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/football%20field%20blueprint%20art',
+      imageUrl: 'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?auto=format&fit=crop&w=800&q=80',
       category: 'abstract',
       isPremium: false,
       isFeatured: false,
@@ -169,7 +169,7 @@ class MockData {
     WallpaperModel(
       id: 'b1',
       title: 'Neon Stadium',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/high%20tech%20soccer%20stadium%20neon%20lights',
+      imageUrl: 'https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=800&q=80',
       category: 'stadiums',
       isPremium: true,
       isFeatured: false,
@@ -180,7 +180,7 @@ class MockData {
     WallpaperModel(
       id: 'b2',
       title: 'Gold Explosion',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/abstract%20gold%20soccer%20ball%20explosion',
+      imageUrl: 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?auto=format&fit=crop&w=800&q=80',
       category: 'abstract',
       isPremium: false,
       isFeatured: false,
@@ -191,7 +191,7 @@ class MockData {
     WallpaperModel(
       id: 'b3',
       title: 'Sunset Player',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/football%20player%20silhouette%20sunset',
+      imageUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80',
       category: 'legends',
       isPremium: false,
       isFeatured: false,
@@ -202,7 +202,7 @@ class MockData {
     WallpaperModel(
       id: 'b4',
       title: 'Cyberpunk Kit',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/cyberpunk%20football%20jersey%20texture',
+      imageUrl: 'https://images.unsplash.com/photo-1567361808960-af78c3a8dc73?auto=format&fit=crop&w=800&q=80',
       category: 'neon',
       isPremium: true,
       isFeatured: false,
@@ -213,7 +213,7 @@ class MockData {
     WallpaperModel(
       id: 'b5',
       title: 'Motion Blur',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/stadium%20crowd%20cheering%20motion%20blur',
+      imageUrl: 'https://images.unsplash.com/photo-1521537634581-0dced2fee2ef?auto=format&fit=crop&w=800&q=80',
       category: 'stadiums',
       isPremium: false,
       isFeatured: false,
@@ -224,7 +224,7 @@ class MockData {
     WallpaperModel(
       id: 'b6',
       title: 'Trophy Gold',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/minimalist%20world%20cup%20trophy%20gold',
+      imageUrl: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=800&q=80',
       category: 'trophies',
       isPremium: true,
       isFeatured: false,
@@ -235,7 +235,7 @@ class MockData {
     WallpaperModel(
       id: 'b7',
       title: 'Grass Dew 4K',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/close%20up%20soccer%20grass%20dew%204k',
+      imageUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80',
       category: 'abstract',
       isPremium: false,
       isFeatured: false,
@@ -246,7 +246,7 @@ class MockData {
     WallpaperModel(
       id: 'b8',
       title: 'Flag Splash',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/national%20flag%20creative%20paint%20splash',
+      imageUrl: 'https://images.unsplash.com/photo-1434648957308-5e6a859697e8?auto=format&fit=crop&w=800&q=80',
       category: 'flags',
       isPremium: false,
       isFeatured: false,
@@ -260,7 +260,7 @@ class MockData {
     WallpaperModel(
       id: 's1',
       title: 'Neon Silhouette',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/high%20contrast%20soccer%20player%20silhouette%20neon',
+      imageUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80',
       category: 'legends',
       isPremium: true,
       isFeatured: false,
@@ -271,7 +271,7 @@ class MockData {
     WallpaperModel(
       id: 's2',
       title: 'Gold Pattern',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/abstract%20gold%20and%20black%20football%20pattern',
+      imageUrl: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=800&q=80',
       category: 'abstract',
       isPremium: false,
       isFeatured: false,
@@ -282,7 +282,7 @@ class MockData {
     WallpaperModel(
       id: 's3',
       title: 'Foggy Stadium',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/stadium%20lights%20through%20fog%20cinematic',
+      imageUrl: 'https://images.unsplash.com/photo-1432553759672-4b1e91b8ccf4?auto=format&fit=crop&w=800&q=80',
       category: 'stadiums',
       isPremium: false,
       isFeatured: false,
@@ -293,7 +293,7 @@ class MockData {
     WallpaperModel(
       id: 's4',
       title: 'Trophy Close Up',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/world%20cup%20trophy%20close%20up%204k',
+      imageUrl: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=800&q=80',
       category: 'trophies',
       isPremium: false,
       isFeatured: false,
@@ -304,7 +304,7 @@ class MockData {
     WallpaperModel(
       id: 's5',
       title: 'Digital Legend',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/messi%20lifting%20trophy%20digital%20art',
+      imageUrl: 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?auto=format&fit=crop&w=800&q=80',
       category: 'legends',
       isPremium: true,
       isFeatured: false,
@@ -315,7 +315,7 @@ class MockData {
     WallpaperModel(
       id: 's6',
       title: 'Amoled Pitch',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/minimalist%20football%20pitch%20lines%20amoled',
+      imageUrl: 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=800&q=80',
       category: 'dark',
       isPremium: false,
       isFeatured: false,
@@ -329,7 +329,7 @@ class MockData {
     WallpaperModel(
       id: 'fav1',
       title: 'Neon Stadium',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/futuristic%20soccer%20stadium%20neon%20lights',
+      imageUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=800&q=80',
       category: 'stadiums',
       isPremium: false,
       isFeatured: false,
@@ -340,7 +340,7 @@ class MockData {
     WallpaperModel(
       id: 'fav2',
       title: 'Golden Trophy',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/golden%20world%20cup%20trophy%20close%20up',
+      imageUrl: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=800&q=80',
       category: 'trophies',
       isPremium: false,
       isFeatured: false,
@@ -351,7 +351,7 @@ class MockData {
     WallpaperModel(
       id: 'fav3',
       title: 'Fire and Ice',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/abstract%20fire%20and%20ice%20football',
+      imageUrl: 'https://images.unsplash.com/photo-1551958219-acbc595b6c4e?auto=format&fit=crop&w=800&q=80',
       category: 'abstract',
       isPremium: false,
       isFeatured: false,
@@ -362,7 +362,7 @@ class MockData {
     WallpaperModel(
       id: 'fav4',
       title: 'Sunset Legend',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/legendary%20player%20silhouette%20sunset',
+      imageUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80',
       category: 'legends',
       isPremium: false,
       isFeatured: false,
@@ -373,7 +373,7 @@ class MockData {
     WallpaperModel(
       id: 'fav5',
       title: 'Dark Jersey',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/minimalist%20dark%20team%20jersey%20pattern',
+      imageUrl: 'https://images.unsplash.com/photo-1567447838040-5dc2dca0b92b?auto=format&fit=crop&w=800&q=80',
       category: 'dark',
       isPremium: false,
       isFeatured: false,
@@ -384,7 +384,7 @@ class MockData {
     WallpaperModel(
       id: 'fav6',
       title: 'Cyberpunk City',
-      imageUrl: 'https://dimg.dreamflow.cloud/v1/image/cyberpunk%20city%20football%20pitch',
+      imageUrl: 'https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=800&q=80',
       category: 'neon',
       isPremium: false,
       isFeatured: false,
