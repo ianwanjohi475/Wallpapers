@@ -1,0 +1,464 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../core/app_colors.dart';
+import '../painters/orb_painter.dart';
+import 'signup_screen.dart';
+import 'main_screen.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
+  bool _loading = false;
+  bool _rememberMe = false;
+
+  late AnimationController _orbCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _orbCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 22),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _orbCtrl.dispose();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    HapticFeedback.lightImpact();
+    setState(() => _loading = true);
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    setState(() => _loading = false);
+    Navigator.of(context).pushAndRemoveUntil(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const MainScreen(),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 600),
+      ),
+      (_) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final safeBottom = MediaQuery.of(context).padding.bottom;
+    final size = MediaQuery.of(context).size;
+
+    return Scaffold(
+      backgroundColor: AppColors.bgPrimary,
+      extendBody: true,
+      resizeToAvoidBottomInset: true,
+      body: AnimatedBuilder(
+        animation: _orbCtrl,
+        builder: (context, _) {
+          return Stack(
+            children: [
+              Opacity(
+                opacity: 0.35,
+                child: CustomPaint(
+                  size: size,
+                  painter: OrbPainter(t: _orbCtrl.value, orbs: purpleOrbs),
+                ),
+              ),
+              SafeArea(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(bottom: safeBottom + 24),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.maybePop(context);
+                            },
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: AppColors.bgCard,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: AppColors.borderSubtle, width: 0.5),
+                              ),
+                              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                                  color: Colors.white, size: 18),
+                            ),
+                          ),
+                          const SizedBox(height: 48),
+                          // Logo
+                          Center(
+                            child: Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                color: AppColors.accentGold.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: AppColors.accentGold.withValues(alpha: 0.3),
+                                    width: 1),
+                              ),
+                              child: const Icon(Icons.sports_soccer_rounded,
+                                  color: AppColors.accentGold, size: 36),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const Center(
+                            child: Text(
+                              'Welcome Back',
+                              style: TextStyle(
+                                fontFamily: 'Rajdhani',
+                                fontWeight: FontWeight.w700,
+                                fontSize: 32,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Center(
+                            child: Text(
+                              'Log in to sync your favorites across devices',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          // Email
+                          _InputLabel('Email Address'),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _emailCtrl,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty)
+                                return 'Enter your email';
+                              if (!v.contains('@')) return 'Enter a valid email';
+                              return null;
+                            },
+                            style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 15,
+                                color: Colors.white),
+                            decoration: _inputDecoration(
+                              hint: 'you@example.com',
+                              prefixIcon: Icons.email_rounded,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          // Password
+                          _InputLabel('Password'),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _passwordCtrl,
+                            obscureText: _obscurePassword,
+                            validator: (v) =>
+                                (v == null || v.isEmpty) ? 'Enter your password' : null,
+                            style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 15,
+                                color: Colors.white),
+                            decoration: _inputDecoration(
+                              hint: '••••••••',
+                              prefixIcon: Icons.lock_rounded,
+                              suffix: GestureDetector(
+                                onTap: () => setState(
+                                    () => _obscurePassword = !_obscurePassword),
+                                child: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off_rounded
+                                      : Icons.visibility_rounded,
+                                  color: AppColors.textTertiary,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Remember me + Forgot
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  HapticFeedback.selectionClick();
+                                  setState(() => _rememberMe = !_rememberMe);
+                                },
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 18,
+                                      height: 18,
+                                      decoration: BoxDecoration(
+                                        color: _rememberMe
+                                            ? AppColors.accentGold
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: _rememberMe
+                                              ? AppColors.accentGold
+                                              : AppColors.borderSubtle,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: _rememberMe
+                                          ? const Icon(Icons.check_rounded,
+                                              size: 11,
+                                              color: AppColors.bgPrimary)
+                                          : null,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Remember me',
+                                      style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 13,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Spacer(),
+                              GestureDetector(
+                                onTap: () => HapticFeedback.lightImpact(),
+                                child: const Text(
+                                  'Forgot Password?',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 13,
+                                    color: AppColors.accentGold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 36),
+                          // Login button
+                          GestureDetector(
+                            onTap: _loading ? null : _login,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              height: 56,
+                              decoration: BoxDecoration(
+                                gradient:
+                                    _loading ? null : AppColors.goldGradient,
+                                color: _loading ? AppColors.bgCard : null,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: _loading
+                                    ? null
+                                    : [
+                                        BoxShadow(
+                                          color: AppColors.accentGold
+                                              .withValues(alpha: 0.35),
+                                          blurRadius: 20,
+                                        ),
+                                      ],
+                              ),
+                              child: Center(
+                                child: _loading
+                                    ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          color: AppColors.accentGold,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'LOG IN',
+                                        style: TextStyle(
+                                          fontFamily: 'Rajdhani',
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
+                                          color: AppColors.bgPrimary,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                  child: Divider(
+                                      color: AppColors.borderSubtle,
+                                      thickness: 0.5)),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text('or',
+                                    style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 13,
+                                        color: AppColors.textTertiary)),
+                              ),
+                              Expanded(
+                                  child: Divider(
+                                      color: AppColors.borderSubtle,
+                                      thickness: 0.5)),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          GestureDetector(
+                            onTap: () => HapticFeedback.lightImpact(),
+                            child: Container(
+                              height: 52,
+                              decoration: BoxDecoration(
+                                color: AppColors.bgCard,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                    color: AppColors.borderSubtle, width: 0.5),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.g_mobiledata_rounded,
+                                      color: Colors.white, size: 24),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Continue with Google',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                "Don't have an account? ",
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 14,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  HapticFeedback.lightImpact();
+                                  Navigator.pushReplacement(
+                                    context,
+                                    PageRouteBuilder(
+                                      pageBuilder: (_, __, ___) =>
+                                          const SignupScreen(),
+                                      transitionsBuilder: (_, anim, __, child) =>
+                                          FadeTransition(
+                                              opacity: anim, child: child),
+                                      transitionDuration:
+                                          const Duration(milliseconds: 300),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  'Sign Up',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: AppColors.accentGold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData prefixIcon,
+    Widget? suffix,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(
+        fontFamily: 'Inter',
+        fontSize: 15,
+        color: AppColors.textTertiary,
+      ),
+      prefixIcon: Icon(prefixIcon, color: AppColors.textTertiary, size: 20),
+      suffixIcon: suffix != null
+          ? Padding(padding: const EdgeInsets.only(right: 12), child: suffix)
+          : null,
+      filled: true,
+      fillColor: AppColors.bgCard,
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.borderSubtle, width: 0.5),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.borderSubtle, width: 0.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.accentGold, width: 1),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+      ),
+      errorStyle: const TextStyle(fontFamily: 'Inter', fontSize: 12),
+    );
+  }
+}
+
+Widget _InputLabel(String label) => Text(
+      label,
+      style: const TextStyle(
+        fontFamily: 'Inter',
+        fontWeight: FontWeight.w500,
+        fontSize: 13,
+        color: AppColors.textSecondary,
+      ),
+    );

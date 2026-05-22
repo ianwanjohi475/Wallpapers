@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/app_colors.dart';
+import 'login_screen.dart';
 import 'premium_screen.dart';
+import 'rate_app_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -148,7 +150,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => HapticFeedback.lightImpact(),
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (_, __, ___) => const LoginScreen(),
+                            transitionsBuilder: (_, anim, __, child) =>
+                                FadeTransition(opacity: anim, child: child),
+                            transitionDuration:
+                                const Duration(milliseconds: 350),
+                          ),
+                        );
+                      },
                       icon: const Icon(Icons.edit_rounded,
                           color: AppColors.textSecondary, size: 20),
                     ),
@@ -321,6 +335,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _SettingsTile(
                 icon: Icons.star_rounded,
                 label: 'Rate App',
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (_, __, ___) => const RateAppScreen(),
+                      transitionsBuilder: (_, anim, __, child) =>
+                          FadeTransition(opacity: anim, child: child),
+                      transitionDuration: const Duration(milliseconds: 300),
+                    ),
+                  );
+                },
                 trailing: const Icon(Icons.arrow_forward_ios_rounded,
                     color: AppColors.textTertiary, size: 13),
               ),
@@ -460,6 +486,7 @@ class _SettingsTile extends StatelessWidget {
   final Widget? trailing;
   final Color? iconColor;
   final Color? labelColor;
+  final VoidCallback? onTap;
 
   const _SettingsTile({
     required this.icon,
@@ -468,60 +495,65 @@ class _SettingsTile extends StatelessWidget {
     this.trailing,
     this.iconColor,
     this.labelColor,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  shape: BoxShape.circle,
+        GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    color:
+                        iconColor ?? AppColors.accentGold.withValues(alpha: 0.85),
+                    size: 18,
+                  ),
                 ),
-                child: Icon(
-                  icon,
-                  color:
-                      iconColor ?? AppColors.accentGold.withValues(alpha: 0.85),
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w400,
-                        fontSize: 14,
-                        color: labelColor ?? Colors.white,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        subtitle!,
-                        style: const TextStyle(
+                        label,
+                        style: TextStyle(
                           fontFamily: 'Inter',
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w400,
+                          fontSize: 14,
+                          color: labelColor ?? Colors.white,
                         ),
                       ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle!,
+                          style: const TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              if (trailing != null) trailing!,
-            ],
+                if (trailing != null) trailing!,
+              ],
+            ),
           ),
         ),
         const Padding(

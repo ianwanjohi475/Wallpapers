@@ -14,6 +14,7 @@ import '../widgets/wallpaper_grid_card.dart';
 import '../widgets/shimmer_card.dart';
 import 'browse_screen.dart';
 import 'detail_screen.dart';
+import 'notifications_screen.dart';
 import 'search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -134,7 +135,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   Stack(
                     children: [
                       IconButton(
-                        onPressed: () => HapticFeedback.lightImpact(),
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (_, __, ___) =>
+                                  const NotificationsScreen(),
+                              transitionsBuilder: (_, anim, __, child) =>
+                                  FadeTransition(opacity: anim, child: child),
+                              transitionDuration:
+                                  const Duration(milliseconds: 300),
+                            ),
+                          );
+                        },
                         icon: const Icon(Icons.notifications_rounded,
                             color: Colors.white, size: 22),
                       ),
