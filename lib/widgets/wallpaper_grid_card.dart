@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
 import '../data/mock_data.dart';
 import '../models/wallpaper_model.dart';
+import '../providers/favorites_provider.dart';
 import '../screens/detail_screen.dart';
 import 'shimmer_card.dart';
 
@@ -25,14 +27,12 @@ class WallpaperGridCard extends StatefulWidget {
 
 class _WallpaperGridCardState extends State<WallpaperGridCard>
     with SingleTickerProviderStateMixin {
-  bool _liked = false;
   late AnimationController _heartCtrl;
   late Animation<double> _heartScale;
 
   @override
   void initState() {
     super.initState();
-    _liked = widget.alwaysLiked;
     _heartCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -49,14 +49,16 @@ class _WallpaperGridCardState extends State<WallpaperGridCard>
     super.dispose();
   }
 
-  void _toggleLike() {
+  void _toggleLike(BuildContext context) {
     HapticFeedback.lightImpact();
-    setState(() => _liked = !_liked);
+    context.read<FavoritesProvider>().toggleLike(widget.wallpaper.id);
     _heartCtrl.forward(from: 0);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLiked = widget.alwaysLiked ||
+        context.watch<FavoritesProvider>().isLiked(widget.wallpaper.id);
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -162,14 +164,14 @@ class _WallpaperGridCardState extends State<WallpaperGridCard>
                   bottom: 6,
                   right: 8,
                   child: GestureDetector(
-                    onTap: _toggleLike,
+                    onTap: () => _toggleLike(context),
                     child: ScaleTransition(
                       scale: _heartScale,
                       child: Icon(
-                        _liked
+                        isLiked
                             ? Icons.favorite_rounded
                             : Icons.favorite_border_rounded,
-                        color: _liked ? Colors.red : Colors.white,
+                        color: isLiked ? Colors.red : Colors.white,
                         size: 18,
                       ),
                     ),

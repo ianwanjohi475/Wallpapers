@@ -254,6 +254,138 @@ class MockData {
       likeCount: 1200,
       resolution: 'HD',
     ),
+    WallpaperModel(
+      id: 'b9',
+      title: 'Home Jersey',
+      imageUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=800&q=80',
+      category: 'teams',
+      isPremium: false,
+      isFeatured: false,
+      downloadCount: 7300,
+      likeCount: 940,
+      resolution: 'HD',
+    ),
+    WallpaperModel(
+      id: 'b10',
+      title: 'Dark Pitch',
+      imageUrl: 'https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&w=800&q=80',
+      category: 'dark',
+      isPremium: false,
+      isFeatured: false,
+      downloadCount: 6100,
+      likeCount: 820,
+      resolution: 'HD',
+    ),
+    WallpaperModel(
+      id: 'b11',
+      title: 'Neon Strike',
+      imageUrl: 'https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?auto=format&fit=crop&w=800&q=80',
+      category: 'neon',
+      isPremium: true,
+      isFeatured: false,
+      downloadCount: 14200,
+      likeCount: 1900,
+      resolution: '4K',
+    ),
+    WallpaperModel(
+      id: 'b12',
+      title: 'Captain Legend',
+      imageUrl: 'https://images.unsplash.com/photo-1543351611-58f69d7c1781?auto=format&fit=crop&w=800&q=80',
+      category: 'legends',
+      isPremium: false,
+      isFeatured: false,
+      downloadCount: 18700,
+      likeCount: 2500,
+      resolution: 'HD',
+    ),
+    WallpaperModel(
+      id: 'b13',
+      title: 'World Cup Lift',
+      imageUrl: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&w=800&q=80',
+      category: 'trophies',
+      isPremium: true,
+      isFeatured: false,
+      downloadCount: 22400,
+      likeCount: 3100,
+      resolution: '4K',
+    ),
+    WallpaperModel(
+      id: 'b14',
+      title: 'Arena Night',
+      imageUrl: 'https://images.unsplash.com/photo-1566577739112-5180d4bf9390?auto=format&fit=crop&w=800&q=80',
+      category: 'stadiums',
+      isPremium: false,
+      isFeatured: false,
+      downloadCount: 9800,
+      likeCount: 1300,
+      resolution: 'HD',
+    ),
+    WallpaperModel(
+      id: 'b15',
+      title: 'Team Spirit',
+      imageUrl: 'https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=800&q=80',
+      category: 'teams',
+      isPremium: false,
+      isFeatured: false,
+      downloadCount: 11500,
+      likeCount: 1550,
+      resolution: 'HD',
+    ),
+    WallpaperModel(
+      id: 'b16',
+      title: 'Midnight Football',
+      imageUrl: 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=800&q=80',
+      category: 'dark',
+      isPremium: false,
+      isFeatured: false,
+      downloadCount: 8400,
+      likeCount: 1100,
+      resolution: 'HD',
+    ),
+    WallpaperModel(
+      id: 'b17',
+      title: 'Glory Flag',
+      imageUrl: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=800&q=80',
+      category: 'flags',
+      isPremium: false,
+      isFeatured: false,
+      downloadCount: 7700,
+      likeCount: 1020,
+      resolution: 'HD',
+    ),
+    WallpaperModel(
+      id: 'b18',
+      title: 'Neon Dribble',
+      imageUrl: 'https://images.unsplash.com/photo-1484482340112-e1e2682b4856?auto=format&fit=crop&w=800&q=80',
+      category: 'neon',
+      isPremium: false,
+      isFeatured: false,
+      downloadCount: 10300,
+      likeCount: 1380,
+      resolution: 'HD',
+    ),
+    WallpaperModel(
+      id: 'b19',
+      title: 'League Final',
+      imageUrl: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=800&q=80',
+      category: 'trophies',
+      isPremium: false,
+      isFeatured: false,
+      downloadCount: 16200,
+      likeCount: 2200,
+      resolution: 'HD',
+    ),
+    WallpaperModel(
+      id: 'b20',
+      title: 'Stadium Lights',
+      imageUrl: 'https://images.unsplash.com/photo-1620294728046-bb99a5e0e99b?auto=format&fit=crop&w=800&q=80',
+      category: 'stadiums',
+      isPremium: true,
+      isFeatured: false,
+      downloadCount: 19500,
+      likeCount: 2650,
+      resolution: '4K',
+    ),
   ];
 
   static const _searchResults = [
@@ -411,8 +543,25 @@ class MockData {
       ];
 
   static List<WallpaperModel> getByCategory(String cat) {
-    if (cat == 'All') return getBrowseAll();
-    return getBrowseAll().where((w) => w.category == cat.toLowerCase()).toList();
+    if (cat == 'All') return getAll().toSet().toList();
+    final seen = <String>{};
+    return getAll().where((w) {
+      if (seen.contains(w.id)) return false;
+      seen.add(w.id);
+      return w.category.toLowerCase() == cat.toLowerCase();
+    }).toList();
+  }
+
+  static List<WallpaperModel> searchAll(String query) {
+    if (query.trim().isEmpty) return [];
+    final q = query.toLowerCase().trim();
+    final seen = <String>{};
+    return getAll().where((w) {
+      if (seen.contains(w.id)) return false;
+      seen.add(w.id);
+      return w.title.toLowerCase().contains(q) ||
+          w.category.toLowerCase().contains(q);
+    }).toList();
   }
 
   static WallpaperModel getRandom() {

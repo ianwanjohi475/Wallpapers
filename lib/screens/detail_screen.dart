@@ -2,9 +2,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
 import '../data/mock_data.dart';
 import '../models/wallpaper_model.dart';
+import '../providers/favorites_provider.dart';
 import '../widgets/glass_pill.dart';
 import '../widgets/shimmer_card.dart';
 import 'premium_screen.dart';
@@ -20,7 +22,6 @@ class DetailScreen extends StatefulWidget {
 
 class _DetailScreenState extends State<DetailScreen>
     with SingleTickerProviderStateMixin {
-  bool _liked = false;
   late AnimationController _heartCtrl;
   late Animation<double> _heartScale;
 
@@ -43,9 +44,9 @@ class _DetailScreenState extends State<DetailScreen>
     super.dispose();
   }
 
-  void _toggleLike() {
+  void _toggleLike(BuildContext context) {
     HapticFeedback.lightImpact();
-    setState(() => _liked = !_liked);
+    context.read<FavoritesProvider>().toggleLike(widget.wallpaper.id);
     _heartCtrl.forward(from: 0);
   }
 
@@ -135,7 +136,7 @@ class _DetailScreenState extends State<DetailScreen>
             top: safeTop + 12,
             right: 16,
             child: GestureDetector(
-              onTap: _toggleLike,
+              onTap: () => _toggleLike(context),
               child: ScaleTransition(
                 scale: _heartScale,
                 child: ClipRRect(
@@ -151,12 +152,15 @@ class _DetailScreenState extends State<DetailScreen>
                         border: Border.all(
                             color: Colors.white.withValues(alpha: 0.12), width: 0.5),
                       ),
-                      child: Icon(
-                        _liked
-                            ? Icons.favorite_rounded
-                            : Icons.favorite_border_rounded,
-                        color: _liked ? Colors.red : Colors.white,
-                        size: 20,
+                      child: Builder(
+                        builder: (ctx) {
+                          final liked = ctx.watch<FavoritesProvider>().isLiked(w.id);
+                          return Icon(
+                            liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                            color: liked ? Colors.red : Colors.white,
+                            size: 20,
+                          );
+                        },
                       ),
                     ),
                   ),
