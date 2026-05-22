@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/app_colors.dart';
 import '../data/mock_data.dart';
+import '../models/wallpaper_model.dart';
 import '../widgets/wallpaper_grid_card.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final _ctrl = TextEditingController();
+  String _query = '';
 
   static const _recentSearches = [
     'Real Madrid 4K',
@@ -28,8 +30,16 @@ class _SearchScreenState extends State<SearchScreen> {
     _Tag(icon: Icons.sports_soccer_rounded, label: 'Stadiums'),
   ];
 
-  static const _leftHeights = [240.0, 180.0, 220.0];
-  static const _rightHeights = [160.0, 260.0, 200.0];
+  static const _leftHeights = [240.0, 180.0, 220.0, 200.0, 260.0, 190.0];
+  static const _rightHeights = [160.0, 260.0, 200.0, 270.0, 170.0, 230.0];
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl.addListener(() {
+      setState(() => _query = _ctrl.text);
+    });
+  }
 
   @override
   void dispose() {
@@ -39,11 +49,16 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final results = MockData.getSearchResults();
-    final left = results.take(3).toList();
-    final right = results.skip(3).take(3).toList();
+    final results = MockData.searchAll(_query);
+    final hasQuery = _query.trim().isNotEmpty;
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
-    final safeTop = MediaQuery.of(context).padding.top;
+
+    final leftItems = <WallpaperModel>[];
+    final rightItems = <WallpaperModel>[];
+    for (int i = 0; i < results.length; i++) {
+      if (i.isEven) leftItems.add(results[i]);
+      else rightItems.add(results[i]);
+    }
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -105,10 +120,24 @@ class _SearchScreenState extends State<SearchScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            const Icon(Icons.mic_none_rounded,
-                                color: AppColors.textSecondary, size: 20),
-                            const SizedBox(width: 14),
+                            if (hasQuery)
+                              GestureDetector(
+                                onTap: () {
+                                  _ctrl.clear();
+                                  setState(() => _query = '');
+                                },
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 14),
+                                  child: Icon(Icons.close_rounded,
+                                      color: AppColors.textSecondary, size: 20),
+                                ),
+                              )
+                            else ...[
+                              const SizedBox(width: 16),
+                              const Icon(Icons.mic_none_rounded,
+                                  color: AppColors.textSecondary, size: 20),
+                              const SizedBox(width: 14),
+                            ],
                           ],
                         ),
                       ),
@@ -117,186 +146,229 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
             ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-                child: Row(
-                  children: [
-                    const Text(
-                      'RECENT SEARCHES',
-                      style: TextStyle(
-                        fontFamily: 'Rajdhani',
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                        color: Color(0xB3FFD700),
-                        letterSpacing: 1.2,
+            if (!hasQuery) ...[
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+                  child: Row(
+                    children: [
+                      const Text(
+                        'RECENT SEARCHES',
+                        style: TextStyle(
+                          fontFamily: 'Rajdhani',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                          color: Color(0xB3FFD700),
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => HapticFeedback.lightImpact(),
+                        child: const Text(
+                          'Clear All',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) => GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      _ctrl.text = _recentSearches[i];
+                      _ctrl.selection = TextSelection.fromPosition(
+                        TextPosition(offset: _ctrl.text.length),
+                      );
+                    },
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.history_rounded,
+                              color: AppColors.textTertiary, size: 16),
+                          const SizedBox(width: 12),
+                          Text(
+                            _recentSearches[i],
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const Spacer(),
+                          const Icon(Icons.north_west_rounded,
+                              color: AppColors.textTertiary, size: 14),
+                        ],
                       ),
                     ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => HapticFeedback.lightImpact(),
-                      child: const Text(
-                        'Clear All',
+                  ),
+                  childCount: _recentSearches.length,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                  child: const Text(
+                    'POPULAR TAGS',
+                    style: TextStyle(
+                      fontFamily: 'Rajdhani',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                      color: Color(0xB3FFD700),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _popularTags.map((tag) {
+                      return GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          _ctrl.text = tag.label;
+                          _ctrl.selection = TextSelection.fromPosition(
+                            TextPosition(offset: _ctrl.text.length),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.bgCard,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: AppColors.borderSubtle, width: 0.5),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(tag.icon,
+                                  color: AppColors.textTertiary, size: 16),
+                              const SizedBox(width: 6),
+                              Text(
+                                tag.label,
+                                style: const TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: SizedBox(height: bottomPadding),
+              ),
+            ] else ...[
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+                  child: Row(
+                    children: [
+                      const Text(
+                        'MATCHING RESULTS',
                         style: TextStyle(
+                          fontFamily: 'Rajdhani',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                          color: Color(0xB3FFD700),
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${results.length} Wallpapers',
+                        style: const TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, i) => Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.history_rounded,
-                          color: AppColors.textTertiary, size: 16),
-                      const SizedBox(width: 12),
-                      Text(
-                        _recentSearches[i],
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const Spacer(),
-                      const Icon(Icons.north_west_rounded,
-                          color: AppColors.textTertiary, size: 14),
                     ],
                   ),
                 ),
-                childCount: _recentSearches.length,
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-                child: const Text(
-                  'POPULAR TAGS',
-                  style: TextStyle(
-                    fontFamily: 'Rajdhani',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
-                    color: Color(0xB3FFD700),
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _popularTags.map((tag) {
-                    return GestureDetector(
-                      onTap: () => HapticFeedback.lightImpact(),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.bgCard,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                              color: AppColors.borderSubtle, width: 0.5),
+              if (results.isEmpty)
+                SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.image_search_rounded,
+                            color: AppColors.textTertiary, size: 48),
+                        SizedBox(height: 12),
+                        Text(
+                          'No results found',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            color: AppColors.textSecondary,
+                            fontSize: 14,
+                          ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(tag.icon,
-                                color: AppColors.textTertiary, size: 16),
-                            const SizedBox(width: 6),
-                            Text(
-                              tag.label,
-                              style: const TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 13,
-                                color: AppColors.textSecondary,
+                      ],
+                    ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding),
+                  sliver: SliverToBoxAdapter(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            children: List.generate(
+                              leftItems.length,
+                              (i) => Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: WallpaperGridCard(
+                                  wallpaper: leftItems[i],
+                                  height: _leftHeights[i % _leftHeights.length],
+                                ),
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-                child: Row(
-                  children: [
-                    const Text(
-                      'MATCHING RESULTS',
-                      style: TextStyle(
-                        fontFamily: 'Rajdhani',
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                        color: Color(0xB3FFD700),
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const Spacer(),
-                    const Text(
-                      '128 Wallpapers',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding),
-              sliver: SliverToBoxAdapter(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: List.generate(
-                          left.length,
-                          (i) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: WallpaperGridCard(
-                              wallpaper: left[i],
-                              height: _leftHeights[i],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            children: List.generate(
+                              rightItems.length,
+                              (i) => Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: WallpaperGridCard(
+                                  wallpaper: rightItems[i],
+                                  height: _rightHeights[i % _rightHeights.length],
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        children: List.generate(
-                          right.length,
-                          (i) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: WallpaperGridCard(
-                              wallpaper: right[i],
-                              height: _rightHeights[i],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+            ],
           ],
         ),
       ),

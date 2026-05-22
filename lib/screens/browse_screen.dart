@@ -7,29 +7,40 @@ import '../widgets/wallpaper_grid_card.dart';
 import 'filter_sheet.dart';
 
 class BrowseScreen extends StatefulWidget {
-  const BrowseScreen({super.key});
+  final String? initialCategory;
+  const BrowseScreen({super.key, this.initialCategory});
 
   @override
   State<BrowseScreen> createState() => _BrowseScreenState();
 }
 
 class _BrowseScreenState extends State<BrowseScreen> {
-  String _selectedCategory = 'All';
+  late String _selectedCategory;
   final _categories = [
     'All', 'Teams', 'Stadiums', 'Trophies', 'Abstract',
-    'Legends', 'Neon', 'Dark', '4K',
+    'Legends', 'Neon', 'Dark', '4K', 'New', 'Flags',
   ];
 
-  static const _leftHeights = [260.0, 180.0, 200.0, 240.0];
-  static const _rightHeights = [190.0, 250.0, 270.0, 170.0];
+  static const _leftHeights = [260.0, 180.0, 220.0, 240.0, 200.0, 260.0];
+  static const _rightHeights = [190.0, 250.0, 170.0, 270.0, 220.0, 190.0];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory = widget.initialCategory ?? 'All';
+  }
 
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
-    final all = MockData.getBrowseAll();
-    // Fixed column assignments per spec
-    final left = [all[0], all[1], all[4], all[5]]; // b1,b2,b5,b6
-    final right = [all[2], all[3], all[6], all[7]]; // b3,b4,b7,b8
+    final items = MockData.getByCategory(_selectedCategory);
+
+    final leftItems = <WallpaperModel>[];
+    final rightItems = <WallpaperModel>[];
+    for (int i = 0; i < items.length; i++) {
+      if (i.isEven) leftItems.add(items[i]);
+      else rightItems.add(items[i]);
+    }
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -52,9 +63,9 @@ class _BrowseScreenState extends State<BrowseScreen> {
                     color: Colors.white,
                   ),
                 ),
-                const Text(
-                  '1,248 Wallpapers available',
-                  style: TextStyle(
+                Text(
+                  '${items.length} Wallpapers',
+                  style: const TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 12,
                     color: AppColors.textSecondary,
@@ -137,71 +148,72 @@ class _BrowseScreenState extends State<BrowseScreen> {
               ),
             ),
           ),
-          SliverPadding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
-            sliver: SliverToBoxAdapter(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      children: List.generate(
-                        left.length,
-                        (i) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: WallpaperGridCard(
-                            wallpaper: left[i],
-                            height: _leftHeights[i],
+          if (items.isEmpty)
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.image_search_rounded,
+                        color: AppColors.textTertiary, size: 48),
+                    SizedBox(height: 12),
+                    Text(
+                      'No wallpapers in this category',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
+              sliver: SliverToBoxAdapter(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: List.generate(
+                          leftItems.length,
+                          (i) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: WallpaperGridCard(
+                              wallpaper: leftItems[i],
+                              height: _leftHeights[i % _leftHeights.length],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      children: List.generate(
-                        right.length,
-                        (i) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: WallpaperGridCard(
-                            wallpaper: right[i],
-                            height: _rightHeights[i],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 40),
+                          ...List.generate(
+                            rightItems.length,
+                            (i) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: WallpaperGridCard(
+                                wallpaper: rightItems[i],
+                                height: _rightHeights[i % _rightHeights.length],
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 32),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      color: AppColors.accentGold,
-                      strokeWidth: 2,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Loading more...',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 32),
           ),
         ],
       ),

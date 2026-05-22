@@ -1,9 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
-import '../data/mock_data.dart';
 import '../painters/orb_painter.dart';
+import '../providers/favorites_provider.dart';
 import '../widgets/wallpaper_grid_card.dart';
 
 class FavoritesScreen extends StatefulWidget {
@@ -17,8 +18,8 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _orbCtrl;
 
-  static const _leftHeights = [240.0, 180.0, 260.0];
-  static const _rightHeights = [160.0, 220.0, 200.0];
+  static const _leftHeights = [240.0, 180.0, 260.0, 200.0, 240.0, 180.0];
+  static const _rightHeights = [160.0, 220.0, 200.0, 260.0, 160.0, 220.0];
 
   @override
   void initState() {
@@ -40,9 +41,15 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     final size = MediaQuery.of(context).size;
     final safeTop = MediaQuery.of(context).padding.top;
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
-    final favs = MockData.getFavorites();
-    final left = favs.take(3).toList();
-    final right = favs.skip(3).take(3).toList();
+    final favProv = context.watch<FavoritesProvider>();
+    final favs = favProv.getLikedWallpapers();
+
+    final leftItems = <dynamic>[];
+    final rightItems = <dynamic>[];
+    for (int i = 0; i < favs.length; i++) {
+      if (i.isEven) leftItems.add(favs[i]);
+      else rightItems.add(favs[i]);
+    }
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -89,9 +96,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Text(
-                                '47 wallpapers saved',
-                                style: TextStyle(
+                              Text(
+                                '${favs.length} wallpapers saved',
+                                style: const TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 13,
                                   color: AppColors.textSecondary,
@@ -123,7 +130,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                   ),
                 ),
               ),
-              // Back button
+              // Sync button
               Positioned(
                 top: safeTop + 14,
                 right: 24,
@@ -141,52 +148,82 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                   ),
                 ),
               ),
-              // Grid content
+              // Grid content or empty state
               Positioned.fill(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.only(
-                    top: safeTop + 100,
-                    bottom: bottomPadding + 80,
-                    left: 16,
-                    right: 16,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
+                child: favs.isEmpty
+                    ? Center(
                         child: Column(
-                          children: List.generate(
-                            left.length,
-                            (i) => Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: WallpaperGridCard(
-                                wallpaper: left[i],
-                                height: _leftHeights[i],
-                                alwaysLiked: true,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.favorite_border_rounded,
+                                color: AppColors.textTertiary, size: 64),
+                            SizedBox(height: 16),
+                            Text(
+                              'No favorites yet',
+                              style: TextStyle(
+                                fontFamily: 'Rajdhani',
+                                fontWeight: FontWeight.w700,
+                                fontSize: 22,
+                                color: Colors.white,
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          children: List.generate(
-                            right.length,
-                            (i) => Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: WallpaperGridCard(
-                                wallpaper: right[i],
-                                height: _rightHeights[i],
-                                alwaysLiked: true,
+                            SizedBox(height: 8),
+                            Text(
+                              'Tap the heart on any wallpaper\nto save it here',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
                               ),
                             ),
-                          ),
+                          ],
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        padding: EdgeInsets.only(
+                          top: safeTop + 100,
+                          bottom: bottomPadding + 80,
+                          left: 16,
+                          right: 16,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                children: List.generate(
+                                  leftItems.length,
+                                  (i) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: WallpaperGridCard(
+                                      wallpaper: leftItems[i],
+                                      height: _leftHeights[i % _leftHeights.length],
+                                      alwaysLiked: true,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                children: List.generate(
+                                  rightItems.length,
+                                  (i) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: WallpaperGridCard(
+                                      wallpaper: rightItems[i],
+                                      height: _rightHeights[i % _rightHeights.length],
+                                      alwaysLiked: true,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
               ),
               // FAB
               Positioned(

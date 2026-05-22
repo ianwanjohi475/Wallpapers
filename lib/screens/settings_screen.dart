@@ -18,7 +18,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final safeTop = MediaQuery.of(context).padding.top;
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
 
     return Scaffold(

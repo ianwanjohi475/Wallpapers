@@ -3,13 +3,16 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../core/app_colors.dart';
 import '../data/mock_data.dart';
 import '../models/wallpaper_model.dart';
+import '../providers/favorites_provider.dart';
 import '../widgets/glass_pill.dart';
 import '../widgets/wallpaper_grid_card.dart';
 import '../widgets/shimmer_card.dart';
+import 'browse_screen.dart';
 import 'detail_screen.dart';
 import 'search_screen.dart';
 
@@ -256,6 +259,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () {
                               HapticFeedback.lightImpact();
                               setState(() => _selectedCategory = cat);
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (_, __, ___) => BrowseScreen(
+                                    initialCategory: cat,
+                                  ),
+                                  transitionsBuilder: (_, anim, __, child) =>
+                                      FadeTransition(opacity: anim, child: child),
+                                  transitionDuration: const Duration(milliseconds: 350),
+                                ),
+                              );
                             },
                             child: Container(
                               padding: const EdgeInsets.symmetric(
@@ -303,7 +317,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const Spacer(),
                           GestureDetector(
-                            onTap: () => HapticFeedback.lightImpact(),
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.push(context, PageRouteBuilder(
+                                pageBuilder: (_, __, ___) => const BrowseScreen(),
+                                transitionsBuilder: (_, anim, __, child) =>
+                                    FadeTransition(opacity: anim, child: child),
+                                transitionDuration: const Duration(milliseconds: 350),
+                              ));
+                            },
                             child: const Text(
                               'See all',
                               style: TextStyle(
@@ -348,7 +370,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const Spacer(),
                           GestureDetector(
-                            onTap: () => HapticFeedback.lightImpact(),
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.push(context, PageRouteBuilder(
+                                pageBuilder: (_, __, ___) => const BrowseScreen(),
+                                transitionsBuilder: (_, anim, __, child) =>
+                                    FadeTransition(opacity: anim, child: child),
+                                transitionDuration: const Duration(milliseconds: 350),
+                              ));
+                            },
                             child: const Text(
                               'See all',
                               style: TextStyle(
@@ -371,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOut,
-            bottom: _showFab ? 80 : -80,
+            bottom: _showFab ? (64 + MediaQuery.of(context).padding.bottom + 16) : -100,
             right: 24,
             child: GestureDetector(
               onTap: () {
@@ -435,8 +465,6 @@ class _FeaturedCard extends StatefulWidget {
 }
 
 class _FeaturedCardState extends State<_FeaturedCard> {
-  bool _liked = false;
-
   IconData _catIcon(String cat) {
     switch (cat) {
       case 'stadiums': return Icons.stadium_rounded;
@@ -452,6 +480,7 @@ class _FeaturedCardState extends State<_FeaturedCard> {
   @override
   Widget build(BuildContext context) {
     final w = widget.wallpaper;
+    final isLiked = context.watch<FavoritesProvider>().isLiked(w.id);
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -510,7 +539,7 @@ class _FeaturedCardState extends State<_FeaturedCard> {
                 child: GestureDetector(
                   onTap: () {
                     HapticFeedback.lightImpact();
-                    setState(() => _liked = !_liked);
+                    context.read<FavoritesProvider>().toggleLike(w.id);
                   },
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(18),
@@ -524,10 +553,10 @@ class _FeaturedCardState extends State<_FeaturedCard> {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          _liked
+                          isLiked
                               ? Icons.favorite_rounded
                               : Icons.favorite_border_rounded,
-                          color: _liked ? Colors.red : Colors.white,
+                          color: isLiked ? Colors.red : Colors.white,
                           size: 18,
                         ),
                       ),
