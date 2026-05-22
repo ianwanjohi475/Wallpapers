@@ -243,6 +243,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     final safeTop = MediaQuery.of(context).padding.top;
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
+      extendBody: true,
       body: AnimatedBuilder(
         animation: _orbCtrl,
         builder: (context, _) {

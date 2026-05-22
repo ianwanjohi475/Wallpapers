@@ -33,6 +33,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
+      extendBody: true,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(

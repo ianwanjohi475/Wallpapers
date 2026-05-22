@@ -76,6 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
+      extendBody: true,
       body: Stack(
         children: [
           CustomScrollView(

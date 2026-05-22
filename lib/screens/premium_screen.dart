@@ -37,6 +37,7 @@ class _PremiumScreenState extends State<PremiumScreen>
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
+      extendBody: true,
       body: AnimatedBuilder(
         animation: _orbCtrl,
         builder: (context, _) {

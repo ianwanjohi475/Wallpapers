@@ -47,7 +47,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
+      extendBody: true,
       body: SafeArea(
+        top: true,
+        bottom: false,
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(

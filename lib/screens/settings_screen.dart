@@ -23,7 +23,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
+      extendBody: true,
       body: SafeArea(
+        top: true,
+        bottom: false,
         child: SingleChildScrollView(
           padding: EdgeInsets.only(bottom: bottomPadding),
           child: Column(

@@ -64,6 +64,7 @@ class _DetailScreenState extends State<DetailScreen>
     final w = widget.wallpaper;
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
+      extendBody: true,
       extendBodyBehindAppBar: true,
       body: Stack(
         children: [
