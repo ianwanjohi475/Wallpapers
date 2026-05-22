@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/app_colors.dart';
 import '../data/mock_data.dart';
-import '../models/wallpaper_model.dart';
-import '../widgets/wallpaper_grid_card.dart';
+import '../widgets/ad_banner.dart';
+import '../widgets/responsive_masonry.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -30,9 +30,6 @@ class _SearchScreenState extends State<SearchScreen> {
     _Tag(icon: Icons.sports_soccer_rounded, label: 'Stadiums'),
   ];
 
-  static const _leftHeights = [240.0, 180.0, 220.0, 200.0, 260.0, 190.0];
-  static const _rightHeights = [160.0, 260.0, 200.0, 270.0, 170.0, 230.0];
-
   @override
   void initState() {
     super.initState();
@@ -52,13 +49,6 @@ class _SearchScreenState extends State<SearchScreen> {
     final results = MockData.searchAll(_query);
     final hasQuery = _query.trim().isNotEmpty;
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
-
-    final leftItems = <WallpaperModel>[];
-    final rightItems = <WallpaperModel>[];
-    for (int i = 0; i < results.length; i++) {
-      if (i.isEven) leftItems.add(results[i]);
-      else rightItems.add(results[i]);
-    }
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -332,38 +322,10 @@ class _SearchScreenState extends State<SearchScreen> {
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding),
                   sliver: SliverToBoxAdapter(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: Column(
-                            children: List.generate(
-                              leftItems.length,
-                              (i) => Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: WallpaperGridCard(
-                                  wallpaper: leftItems[i],
-                                  height: _leftHeights[i % _leftHeights.length],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            children: List.generate(
-                              rightItems.length,
-                              (i) => Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: WallpaperGridCard(
-                                  wallpaper: rightItems[i],
-                                  height: _rightHeights[i % _rightHeights.length],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                        const AdBanner(margin: EdgeInsets.only(bottom: 16)),
+                        ResponsiveMasonry(items: results),
                       ],
                     ),
                   ),

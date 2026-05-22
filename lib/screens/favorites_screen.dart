@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
 import '../painters/orb_painter.dart';
 import '../providers/favorites_provider.dart';
-import '../widgets/wallpaper_grid_card.dart';
+import '../widgets/responsive_masonry.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -17,9 +17,6 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _orbCtrl;
-
-  static const _leftHeights = [240.0, 180.0, 260.0, 200.0, 240.0, 180.0];
-  static const _rightHeights = [160.0, 220.0, 200.0, 260.0, 160.0, 220.0];
 
   @override
   void initState() {
@@ -43,13 +40,6 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
     final favProv = context.watch<FavoritesProvider>();
     final favs = favProv.getLikedWallpapers();
-
-    final leftItems = <dynamic>[];
-    final rightItems = <dynamic>[];
-    for (int i = 0; i < favs.length; i++) {
-      if (i.isEven) leftItems.add(favs[i]);
-      else rightItems.add(favs[i]);
-    }
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -187,41 +177,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                           left: 16,
                           right: 16,
                         ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                children: List.generate(
-                                  leftItems.length,
-                                  (i) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 16),
-                                    child: WallpaperGridCard(
-                                      wallpaper: leftItems[i],
-                                      height: _leftHeights[i % _leftHeights.length],
-                                      alwaysLiked: true,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                children: List.generate(
-                                  rightItems.length,
-                                  (i) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 16),
-                                    child: WallpaperGridCard(
-                                      wallpaper: rightItems[i],
-                                      height: _rightHeights[i % _rightHeights.length],
-                                      alwaysLiked: true,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: ResponsiveMasonry(
+                          items: favs,
+                          alwaysLiked: true,
                         ),
                       ),
               ),

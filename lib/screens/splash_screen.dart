@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/app_colors.dart';
 import '../painters/orb_painter.dart';
@@ -203,20 +202,14 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(3, (i) => Padding(
-                    padding: EdgeInsets.only(left: i == 0 ? 0 : 16),
-                    child: Lottie.network(
-                      'https://dimg.dreamflow.cloud/v1/lottie/loading+dot+pulse',
-                      width: 12,
-                      height: 12,
-                      fit: BoxFit.contain,
-                      animate: true,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: AppColors.accentGold,
-                          shape: BoxShape.circle,
-                        ),
+                    padding: EdgeInsets.only(left: i == 0 ? 0 : 14),
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: AppColors.accentGold
+                            .withValues(alpha: 1.0 - i * 0.32),
+                        shape: BoxShape.circle,
                       ),
                     ),
                   )),

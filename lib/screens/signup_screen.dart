@@ -1,7 +1,10 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/app_colors.dart';
 import '../painters/orb_painter.dart';
+import '../widgets/google_logo.dart';
+import 'legal_screen.dart';
 import 'login_screen.dart';
 import 'main_screen.dart';
 
@@ -22,6 +25,9 @@ class _SignupScreenState extends State<SignupScreen>
   bool _loading = false;
   bool _agreedToTerms = false;
 
+  final _termsRecognizer = TapGestureRecognizer();
+  final _privacyRecognizer = TapGestureRecognizer();
+
   late AnimationController _orbCtrl;
 
   @override
@@ -31,6 +37,21 @@ class _SignupScreenState extends State<SignupScreen>
       vsync: this,
       duration: const Duration(seconds: 22),
     )..repeat();
+    _termsRecognizer.onTap = () => _openLegal(LegalScreen.terms());
+    _privacyRecognizer.onTap = () => _openLegal(LegalScreen.privacy());
+  }
+
+  void _openLegal(Widget page) {
+    HapticFeedback.lightImpact();
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => page,
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+    );
   }
 
   @override
@@ -39,6 +60,8 @@ class _SignupScreenState extends State<SignupScreen>
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
+    _termsRecognizer.dispose();
+    _privacyRecognizer.dispose();
     super.dispose();
   }
 
@@ -261,11 +284,11 @@ class _SignupScreenState extends State<SignupScreen>
                                       : null,
                                 ),
                                 const SizedBox(width: 10),
-                                const Expanded(
+                                Expanded(
                                   child: Text.rich(
                                     TextSpan(
                                       text: 'I agree to the ',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontFamily: 'Inter',
                                         fontSize: 13,
                                         color: AppColors.textSecondary,
@@ -273,20 +296,22 @@ class _SignupScreenState extends State<SignupScreen>
                                       children: [
                                         TextSpan(
                                           text: 'Terms of Service',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: AppColors.accentGold,
                                             decoration: TextDecoration.underline,
                                             decorationColor: AppColors.accentGold,
                                           ),
+                                          recognizer: _termsRecognizer,
                                         ),
-                                        TextSpan(text: ' and '),
+                                        const TextSpan(text: ' and '),
                                         TextSpan(
                                           text: 'Privacy Policy',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: AppColors.accentGold,
                                             decoration: TextDecoration.underline,
                                             decorationColor: AppColors.accentGold,
                                           ),
+                                          recognizer: _privacyRecognizer,
                                         ),
                                       ],
                                     ),
@@ -371,7 +396,7 @@ class _SignupScreenState extends State<SignupScreen>
                           const SizedBox(height: 24),
                           // Google button
                           _SocialButton(
-                            icon: Icons.g_mobiledata_rounded,
+                            leading: const GoogleLogo(size: 18),
                             label: 'Continue with Google',
                             onTap: () => HapticFeedback.lightImpact(),
                           ),
@@ -524,12 +549,12 @@ class _InputField extends StatelessWidget {
 }
 
 class _SocialButton extends StatelessWidget {
-  final IconData icon;
+  final Widget leading;
   final String label;
   final VoidCallback onTap;
 
   const _SocialButton({
-    required this.icon,
+    required this.leading,
     required this.label,
     required this.onTap,
   });
@@ -548,7 +573,7 @@ class _SocialButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 24),
+            leading,
             const SizedBox(width: 10),
             Text(
               label,

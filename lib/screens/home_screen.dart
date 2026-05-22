@@ -9,10 +9,12 @@ import '../core/app_colors.dart';
 import '../data/mock_data.dart';
 import '../models/wallpaper_model.dart';
 import '../providers/favorites_provider.dart';
+import '../widgets/ad_banner.dart';
 import '../widgets/glass_pill.dart';
-import '../widgets/wallpaper_grid_card.dart';
+import '../widgets/responsive_masonry.dart';
 import '../widgets/shimmer_card.dart';
 import 'browse_screen.dart';
+import 'categories_screen.dart';
 import 'detail_screen.dart';
 import 'notifications_screen.dart';
 import 'search_screen.dart';
@@ -247,16 +249,46 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
-                      child: Text(
-                        'Browse by Category',
-                        style: TextStyle(
-                          fontFamily: 'Rajdhani',
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Browse by Category',
+                            style: TextStyle(
+                              fontFamily: 'Rajdhani',
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (_, __, ___) =>
+                                      const CategoriesScreen(),
+                                  transitionsBuilder: (_, anim, __, child) =>
+                                      FadeTransition(
+                                          opacity: anim, child: child),
+                                  transitionDuration:
+                                      const Duration(milliseconds: 350),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'See all',
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                color: AppColors.accentGold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     SizedBox(
@@ -366,6 +398,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
+                    const AdBanner(
+                      margin: EdgeInsets.fromLTRB(20, 0, 20, 24),
+                    ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                       child: Row(
@@ -405,7 +440,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-                    _MasonryGrid(wallpapers: mostDl),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ResponsiveMasonry(items: mostDl),
+                    ),
                     SizedBox(height: bottomPadding + 60),
                   ],
                 ),
@@ -707,56 +745,6 @@ class _NewTodayCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _MasonryGrid extends StatelessWidget {
-  final List<WallpaperModel> wallpapers;
-
-  const _MasonryGrid({required this.wallpapers});
-
-  static const _leftHeights = [240.0, 160.0, 200.0];
-  static const _rightHeights = [180.0, 260.0, 160.0];
-
-  @override
-  Widget build(BuildContext context) {
-    final left = wallpapers.take(3).toList();
-    final right = wallpapers.skip(3).take(3).toList();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              children: List.generate(left.length, (i) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: WallpaperGridCard(
-                  wallpaper: left[i],
-                  height: _leftHeights[i],
-                ),
-              )),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              children: [
-                const SizedBox(height: 60),
-                ...List.generate(right.length, (i) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: WallpaperGridCard(
-                    wallpaper: right[i],
-                    height: _rightHeights[i],
-                  ),
-                )),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

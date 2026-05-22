@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../core/app_colors.dart';
@@ -89,15 +88,25 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Lottie.network(
-          'https://dimg.dreamflow.cloud/v1/lottie/spinning+golden+trophy+animation',
-          width: 240,
-          height: 240,
-          animate: true,
-          errorBuilder: (_, __, ___) => const Icon(
-            Icons.emoji_events_rounded,
-            size: 120,
-            color: AppColors.accentGold,
+        ScaleTransition(
+          scale: Tween<double>(begin: 1.0, end: 1.08).animate(
+            CurvedAnimation(parent: _iconPulse2, curve: Curves.easeInOut),
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.accentGold.withValues(alpha: 0.4),
+                  blurRadius: 40,
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.emoji_events_rounded,
+              size: 120,
+              color: AppColors.accentGold,
+            ),
           ),
         ),
         const SizedBox(height: 40),

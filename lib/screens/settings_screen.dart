@@ -1,7 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import '../core/app_colors.dart';
+import 'about_screen.dart';
+import 'downloads_screen.dart';
+import 'edit_profile_screen.dart';
+import 'help_screen.dart';
+import 'legal_screen.dart';
 import 'login_screen.dart';
 import 'premium_screen.dart';
 import 'rate_app_screen.dart';
@@ -17,6 +23,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _newWallpapers = true;
   bool _featuredPacks = false;
   String _theme = 'Dark';
+
+  void _push(Widget page) {
+    HapticFeedback.lightImpact();
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => page,
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,19 +169,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (_, __, ___) => const LoginScreen(),
-                            transitionsBuilder: (_, anim, __, child) =>
-                                FadeTransition(opacity: anim, child: child),
-                            transitionDuration:
-                                const Duration(milliseconds: 350),
-                          ),
-                        );
-                      },
+                      onPressed: () => _push(const EditProfileScreen()),
                       icon: const Icon(Icons.edit_rounded,
                           color: AppColors.textSecondary, size: 20),
                     ),
@@ -175,7 +182,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: _StatCard(value: '124', label: 'Downloads'),
+                      child: GestureDetector(
+                        onTap: () => _push(const DownloadsScreen()),
+                        child: _StatCard(value: '124', label: 'Downloads'),
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -353,12 +363,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _SettingsTile(
                 icon: Icons.share_rounded,
                 label: 'Share with Fans',
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  Share.share(
+                    'Check out WC Wallpapers 2026 — 800+ epic football '
+                    'wallpapers in 4K. Download it now!',
+                  );
+                },
+                trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                    color: AppColors.textTertiary, size: 13),
+              ),
+              _SettingsTile(
+                icon: Icons.help_outline_rounded,
+                label: 'Help & Support',
+                onTap: () => _push(const HelpScreen()),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                    color: AppColors.textTertiary, size: 13),
+              ),
+              _SettingsTile(
+                icon: Icons.info_outline_rounded,
+                label: 'About',
+                onTap: () => _push(const AboutScreen()),
                 trailing: const Icon(Icons.arrow_forward_ios_rounded,
                     color: AppColors.textTertiary, size: 13),
               ),
               _SettingsTile(
                 icon: Icons.security_rounded,
                 label: 'Privacy Policy',
+                onTap: () => _push(LegalScreen.privacy()),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                    color: AppColors.textTertiary, size: 13),
+              ),
+              _SettingsTile(
+                icon: Icons.description_outlined,
+                label: 'Terms of Service',
+                onTap: () => _push(LegalScreen.terms()),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                    color: AppColors.textTertiary, size: 13),
+              ),
+              _SectionHeader('ACCOUNT'),
+              _SettingsTile(
+                icon: Icons.logout_rounded,
+                label: 'Log Out',
+                onTap: () => _push(const LoginScreen()),
                 trailing: const Icon(Icons.arrow_forward_ios_rounded,
                     color: AppColors.textTertiary, size: 13),
               ),

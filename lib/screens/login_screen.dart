@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/app_colors.dart';
 import '../painters/orb_painter.dart';
+import '../widgets/google_logo.dart';
+import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 import 'main_screen.dart';
 
@@ -246,7 +248,22 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                               const Spacer(),
                               GestureDetector(
-                                onTap: () => HapticFeedback.lightImpact(),
+                                onTap: () {
+                                  HapticFeedback.lightImpact();
+                                  Navigator.push(
+                                    context,
+                                    PageRouteBuilder(
+                                      pageBuilder: (_, __, ___) =>
+                                          const ForgotPasswordScreen(),
+                                      transitionsBuilder:
+                                          (_, anim, __, child) =>
+                                              FadeTransition(
+                                                  opacity: anim, child: child),
+                                      transitionDuration:
+                                          const Duration(milliseconds: 300),
+                                    ),
+                                  );
+                                },
                                 child: const Text(
                                   'Forgot Password?',
                                   style: TextStyle(
@@ -338,8 +355,7 @@ class _LoginScreenState extends State<LoginScreen>
                               child: const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.g_mobiledata_rounded,
-                                      color: Colors.white, size: 24),
+                                  GoogleLogo(size: 18),
                                   SizedBox(width: 10),
                                   Text(
                                     'Continue with Google',

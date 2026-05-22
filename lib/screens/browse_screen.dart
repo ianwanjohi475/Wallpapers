@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/app_colors.dart';
+import '../core/responsive.dart';
 import '../data/mock_data.dart';
-import '../models/wallpaper_model.dart';
-import '../widgets/wallpaper_grid_card.dart';
+import '../widgets/ad_banner.dart';
+import '../widgets/responsive_masonry.dart';
 import 'filter_sheet.dart';
 
 class BrowseScreen extends StatefulWidget {
@@ -21,9 +22,6 @@ class _BrowseScreenState extends State<BrowseScreen> {
     'Legends', 'Neon', 'Dark', '4K', 'New', 'Flags',
   ];
 
-  static const _leftHeights = [260.0, 180.0, 220.0, 240.0, 200.0, 260.0];
-  static const _rightHeights = [190.0, 250.0, 170.0, 270.0, 220.0, 190.0];
-
   @override
   void initState() {
     super.initState();
@@ -34,13 +32,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
     final items = MockData.getByCategory(_selectedCategory);
-
-    final leftItems = <WallpaperModel>[];
-    final rightItems = <WallpaperModel>[];
-    for (int i = 0; i < items.length; i++) {
-      if (i.isEven) leftItems.add(items[i]);
-      else rightItems.add(items[i]);
-    }
+    final pad = Responsive.pagePadding(context);
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -171,43 +163,12 @@ class _BrowseScreenState extends State<BrowseScreen> {
             )
           else
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
+              padding: EdgeInsets.fromLTRB(pad, 16, pad, bottomPadding),
               sliver: SliverToBoxAdapter(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
                   children: [
-                    Expanded(
-                      child: Column(
-                        children: List.generate(
-                          leftItems.length,
-                          (i) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: WallpaperGridCard(
-                              wallpaper: leftItems[i],
-                              height: _leftHeights[i % _leftHeights.length],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 40),
-                          ...List.generate(
-                            rightItems.length,
-                            (i) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: WallpaperGridCard(
-                                wallpaper: rightItems[i],
-                                height: _rightHeights[i % _rightHeights.length],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    const AdBanner(margin: EdgeInsets.only(bottom: 16)),
+                    ResponsiveMasonry(items: items),
                   ],
                 ),
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'core/app_colors.dart';
+import 'core/responsive.dart';
 import 'screens/splash_screen.dart';
 
 class WcWallpapersApp extends StatelessWidget {
@@ -102,6 +103,16 @@ class WcWallpapersApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
+      builder: (context, child) {
+        // Honour accessibility text settings but clamp the extremes so
+        // layouts stay intact across every device.
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: Responsive.clampedTextScaler(context),
+          ),
+          child: child!,
+        );
+      },
       home: const SplashScreen(),
     );
   }

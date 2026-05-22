@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- ball body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,24 a30,30 0 1,1 0,60 a30,30 0 1,1 0,-60 Z" />
+    <!-- gold rim -->
+    <path
+        android:strokeColor="#FFD700"
+        android:strokeWidth="3.5"
+        android:fillColor="#00000000"
+        android:pathData="M54,24 a30,30 0 1,1 0,60 a30,30 0 1,1 0,-60 Z" />
+    <!-- centre pentagon -->
+    <path
+        android:fillColor="#08080F"
+        android:pathData="M54,43 L64.46,50.6 L60.47,62.9 L47.53,62.9 L43.54,50.6 Z" />
+    <!-- seams -->
+    <path
+        android:strokeColor="#08080F"
+        android:strokeWidth="3.4"
+        android:strokeLineCap="round"
+        android:pathData="M54,43 L54,27 M64.46,50.6 L78,46 M60.47,62.9 L70,77 M47.53,62.9 L38,77 M43.54,50.6 L30,46" />
+</vector>

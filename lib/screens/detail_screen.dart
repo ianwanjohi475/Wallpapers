@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../core/app_colors.dart';
 import '../data/mock_data.dart';
 import '../models/wallpaper_model.dart';
 import '../providers/favorites_provider.dart';
 import '../widgets/glass_pill.dart';
+import '../widgets/rewarded_ad_sheet.dart';
 import '../widgets/shimmer_card.dart';
-import 'premium_screen.dart';
 
 class DetailScreen extends StatefulWidget {
   final WallpaperModel wallpaper;
@@ -55,6 +56,36 @@ class _DetailScreenState extends State<DetailScreen>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => _SetWallpaperSheet(wallpaper: widget.wallpaper),
+    );
+  }
+
+  Future<void> _watchAdToUnlock() async {
+    HapticFeedback.lightImpact();
+    final rewarded = await showRewardedAdSheet(
+      context,
+      rewardLabel: widget.wallpaper.title,
+    );
+    if (!mounted || !rewarded) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.lock_open_rounded,
+                color: AppColors.accentGold, size: 18),
+            SizedBox(width: 8),
+            Text('Unlocked — saved to gallery!',
+                style: TextStyle(fontFamily: 'Inter', fontSize: 14)),
+          ],
+        ),
+        backgroundColor: AppColors.bgCard,
+      ),
+    );
+  }
+
+  void _share() {
+    HapticFeedback.lightImpact();
+    Share.share(
+      'Check out "${widget.wallpaper.title}" on WC Wallpapers 2026!',
     );
   }
 
@@ -325,7 +356,7 @@ class _DetailScreenState extends State<DetailScreen>
                         child: BackdropFilter(
                           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                           child: GestureDetector(
-                            onTap: () => HapticFeedback.lightImpact(),
+                            onTap: _share,
                             child: Container(
                               width: 52,
                               height: 52,
@@ -346,18 +377,7 @@ class _DetailScreenState extends State<DetailScreen>
                   ),
                   const SizedBox(height: 14),
                   GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (_, __, ___) => const PremiumScreen(),
-                          transitionsBuilder: (_, anim, __, child) =>
-                              FadeTransition(opacity: anim, child: child),
-                          transitionDuration: const Duration(milliseconds: 350),
-                        ),
-                      );
-                    },
+                    onTap: _watchAdToUnlock,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: BackdropFilter(
