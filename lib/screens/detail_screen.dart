@@ -155,14 +155,14 @@ class _DetailScreenState extends State<DetailScreen>
             tag: 'wall_${w.id}',
             child: SizedBox(
               width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.65,
+              height: MediaQuery.of(context).size.height,
               child: CachedNetworkImage(
                 imageUrl: w.previewUrl,
                 fit: BoxFit.cover,
                 memCacheWidth: 1080,
                 fadeInDuration: const Duration(milliseconds: 300),
                 placeholder: (_, __) => ShimmerCard(
-                    height: MediaQuery.of(context).size.height * 0.65),
+                    height: MediaQuery.of(context).size.height),
                 errorWidget: (_, __, ___) => Container(
                   color: AppColors.bgCard,
                   child: const Center(
@@ -182,10 +182,10 @@ class _DetailScreenState extends State<DetailScreen>
                   colors: [
                     Colors.transparent,
                     Colors.transparent,
-                    AppColors.bgPrimary.withValues(alpha: 0.5),
-                    AppColors.bgPrimary,
+                    Colors.black.withValues(alpha: 0.55),
+                    Colors.black.withValues(alpha: 0.88),
                   ],
-                  stops: const [0.0, 0.3, 0.6, 0.85],
+                  stops: const [0.0, 0.45, 0.72, 1.0],
                 ),
               ),
             ),

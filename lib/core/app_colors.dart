@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
+  // Dark palette (existing constants — unchanged so all existing code compiles)
   static const bgPrimary = Color(0xFF08080F);
   static const bgCard = Color(0xFF0F0F1A);
   static const bgElevated = Color(0xFF161625);
@@ -19,5 +20,64 @@ class AppColors {
     colors: [Color(0xFFFFD700), Color(0xFFFF7300)],
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
+  );
+}
+
+/// Theme-aware colour set. Use [AppThemeColors.of(context)] anywhere
+/// the colour needs to adapt to light / dark mode.
+class AppThemeColors {
+  final Color bgPrimary;
+  final Color bgCard;
+  final Color bgElevated;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textTertiary;
+  final Color borderSubtle;
+  final Color shimmerBase;
+  final Color shimmerHighlight;
+  final bool isDark;
+
+  const AppThemeColors({
+    required this.bgPrimary,
+    required this.bgCard,
+    required this.bgElevated,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textTertiary,
+    required this.borderSubtle,
+    required this.shimmerBase,
+    required this.shimmerHighlight,
+    required this.isDark,
+  });
+
+  static AppThemeColors of(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return brightness == Brightness.dark ? _dark : _light;
+  }
+
+  static const _dark = AppThemeColors(
+    bgPrimary: Color(0xFF08080F),
+    bgCard: Color(0xFF0F0F1A),
+    bgElevated: Color(0xFF161625),
+    textPrimary: Color(0xFFFFFFFF),
+    textSecondary: Color(0x8CFFFFFF),
+    textTertiary: Color(0x40FFFFFF),
+    borderSubtle: Color(0x0FFFFFFF),
+    shimmerBase: Color(0xFF0F0F1A),
+    shimmerHighlight: Color(0xFF1C1C2E),
+    isDark: true,
+  );
+
+  static const _light = AppThemeColors(
+    bgPrimary: Color(0xFFF2F2F7),
+    bgCard: Color(0xFFFFFFFF),
+    bgElevated: Color(0xFFE8E8F0),
+    textPrimary: Color(0xFF0A0A15),
+    textSecondary: Color(0x99000000),
+    textTertiary: Color(0x55000000),
+    borderSubtle: Color(0x18000000),
+    shimmerBase: Color(0xFFE0E0EA),
+    shimmerHighlight: Color(0xFFF5F5FA),
+    isDark: false,
   );
 }

@@ -10,6 +10,7 @@ import '../models/wallpaper_model.dart';
 import '../providers/favorites_provider.dart';
 import '../services/wallpaper_service.dart';
 import '../widgets/ad_banner.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/glass_pill.dart';
 import '../widgets/responsive_masonry.dart';
 import '../widgets/shimmer_card.dart';
@@ -141,24 +142,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       surfaceTintColor: Colors.transparent,
                       title: Row(
                         children: [
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: AppColors.accentGold,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(Icons.sports_soccer_rounded,
-                                color: AppColors.bgPrimary, size: 20),
-                          ),
-                          const SizedBox(width: 8),
+                          AppLogo(size: 36),
+                          const SizedBox(width: 10),
                           const Text(
-                            'WC WALLPAPERS',
+                            'WALLPAPERS',
                             style: TextStyle(
-                              fontFamily: 'Inter',
+                              fontFamily: 'Rajdhani',
                               fontWeight: FontWeight.w700,
-                              fontSize: 14,
+                              fontSize: 16,
                               color: AppColors.accentGold,
+                              letterSpacing: 1.5,
                             ),
                           ),
                         ],

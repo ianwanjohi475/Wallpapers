@@ -7,6 +7,7 @@ import 'core/app_colors.dart';
 import 'core/supabase_config.dart';
 import 'providers/auth_provider.dart';
 import 'providers/favorites_provider.dart';
+import 'providers/theme_provider.dart';
 import 'providers/wallpaper_provider.dart';
 
 void main() async {
@@ -26,9 +27,9 @@ void main() async {
     await favoritesProvider.syncWithServer();
   }
 
-  // Show both system bars. Status bar is transparent so hero images flow
-  // behind it; nav bar is solid so the gesture/3-button area stays in its
-  // own frame outside the app (matching WhatsApp/Instagram behaviour).
+  final themeProvider = ThemeProvider();
+  await themeProvider.load();
+
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.manual,
     overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
@@ -37,6 +38,7 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  // Initial system UI style (dark mode default; app.dart updates on theme change).
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -51,6 +53,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider.value(value: themeProvider),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider.value(value: favoritesProvider),
         ChangeNotifierProvider(create: (_) => WallpaperProvider()),

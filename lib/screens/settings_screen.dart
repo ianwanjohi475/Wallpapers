@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../core/app_colors.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../services/download_service.dart';
 import '../widgets/auth_required_sheet.dart';
@@ -28,7 +29,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _newWallpapers = true;
   bool _featuredPacks = false;
-  String _theme = 'Dark';
+  // Theme mode is managed by ThemeProvider.
   int? _downloadCount;
 
   @override
@@ -347,44 +348,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               _SectionHeader('APPEARANCE'),
-              _SettingsTile(
-                icon: Icons.dark_mode_rounded,
-                label: 'Theme Mode',
-                subtitle: _theme,
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: ['System', 'Dark', 'Light'].map((t) {
-                    final selected = _theme == t;
-                    return GestureDetector(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        setState(() => _theme = t);
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(left: 4),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? AppColors.accentGold
-                              : AppColors.bgElevated,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          t,
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 11,
+              Builder(builder: (ctx) {
+                final themeProv = ctx.watch<ThemeProvider>();
+                return _SettingsTile(
+                  icon: Icons.dark_mode_rounded,
+                  label: 'Theme Mode',
+                  subtitle: themeProv.label,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ('System', ThemeMode.system),
+                      ('Dark', ThemeMode.dark),
+                      ('Light', ThemeMode.light),
+                    ].map((entry) {
+                      final label = entry.$1;
+                      final mode = entry.$2;
+                      final selected = themeProv.mode == mode;
+                      return GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          ctx.read<ThemeProvider>().setMode(mode);
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(left: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
                             color: selected
-                                ? AppColors.bgPrimary
-                                : AppColors.textSecondary,
+                                ? AppColors.accentGold
+                                : AppColors.bgElevated,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 11,
+                              color: selected
+                                  ? AppColors.bgPrimary
+                                  : AppColors.textSecondary,
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
+                      );
+                    }).toList(),
+                  ),
+                );
+              }),
               _SectionHeader('NOTIFICATIONS'),
               _SettingsTile(
                 icon: Icons.notifications_active_rounded,

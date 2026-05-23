@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'core/app_colors.dart';
 import 'core/responsive.dart';
+import 'providers/theme_provider.dart';
 import 'screens/splash_screen.dart';
 
 class WcWallpapersApp extends StatelessWidget {
@@ -9,103 +11,28 @@ class WcWallpapersApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = context.watch<ThemeProvider>().mode;
     return MaterialApp(
-      title: 'WC Wallpapers 2026',
+      title: 'WC Wallpapers',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: AppColors.bgPrimary,
-        colorScheme: const ColorScheme.dark(
-          primary: AppColors.accentGold,
-          secondary: AppColors.accentOrange,
-          surface: AppColors.bgCard,
-          background: AppColors.bgPrimary,
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.light,
-          ),
-          titleTextStyle: TextStyle(
-            fontFamily: 'Rajdhani',
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-            color: Colors.white,
-          ),
-          iconTheme: IconThemeData(color: Colors.white),
-        ),
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(
-              fontFamily: 'Rajdhani',
-              fontWeight: FontWeight.w700,
-              color: Colors.white),
-          displayMedium: TextStyle(
-              fontFamily: 'Rajdhani',
-              fontWeight: FontWeight.w700,
-              color: Colors.white),
-          headlineLarge: TextStyle(
-              fontFamily: 'Rajdhani',
-              fontWeight: FontWeight.w700,
-              fontSize: 34,
-              color: Colors.white),
-          headlineMedium: TextStyle(
-              fontFamily: 'Rajdhani',
-              fontWeight: FontWeight.w700,
-              fontSize: 26,
-              color: Colors.white),
-          titleLarge: TextStyle(
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-              color: Colors.white),
-          titleMedium: TextStyle(
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-              color: Colors.white),
-          bodyLarge: TextStyle(
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w400,
-              fontSize: 15,
-              color: AppColors.textSecondary),
-          bodyMedium: TextStyle(
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w400,
-              fontSize: 14,
-              color: AppColors.textSecondary),
-          bodySmall: TextStyle(
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w400,
-              fontSize: 12,
-              color: AppColors.textSecondary),
-          labelSmall: TextStyle(
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w400,
-              fontSize: 11,
-              color: AppColors.textTertiary),
-        ),
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: _FadeSlideTransitionBuilder(),
-            TargetPlatform.iOS: _FadeSlideTransitionBuilder(),
-          },
-        ),
-        snackBarTheme: const SnackBarThemeData(
-          backgroundColor: AppColors.bgCard,
-          contentTextStyle: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 14,
-            color: Colors.white,
-          ),
-        ),
-        useMaterial3: true,
-      ),
+      themeMode: themeMode,
+      theme: _buildTheme(Brightness.light),
+      darkTheme: _buildTheme(Brightness.dark),
       builder: (context, child) {
-        // Honour accessibility text settings but clamp the extremes so
-        // layouts stay intact across every device.
+        // Keep system UI in sync with the active brightness.
+        final bright = Theme.of(context).brightness;
+        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness:
+              bright == Brightness.dark ? Brightness.light : Brightness.dark,
+          statusBarBrightness: bright,
+          systemNavigationBarColor: bright == Brightness.dark
+              ? AppColors.bgPrimary
+              : const Color(0xFFF2F2F7),
+          systemNavigationBarIconBrightness:
+              bright == Brightness.dark ? Brightness.light : Brightness.dark,
+          systemNavigationBarDividerColor: Colors.transparent,
+        ));
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: Responsive.clampedTextScaler(context),
@@ -114,6 +41,119 @@ class WcWallpapersApp extends StatelessWidget {
         );
       },
       home: const SplashScreen(),
+    );
+  }
+
+  static ThemeData _buildTheme(Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+    final bg = isDark ? AppColors.bgPrimary : const Color(0xFFF2F2F7);
+    final surface = isDark ? AppColors.bgCard : Colors.white;
+    final onSurface = isDark ? Colors.white : const Color(0xFF0A0A15);
+
+    return ThemeData(
+      brightness: brightness,
+      scaffoldBackgroundColor: bg,
+      colorScheme: ColorScheme(
+        brightness: brightness,
+        primary: AppColors.accentGold,
+        onPrimary: AppColors.bgPrimary,
+        secondary: AppColors.accentOrange,
+        onSecondary: Colors.white,
+        error: Colors.redAccent,
+        onError: Colors.white,
+        surface: surface,
+        onSurface: onSurface,
+        background: bg,
+        onBackground: onSurface,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness:
+              isDark ? Brightness.light : Brightness.dark,
+        ),
+        titleTextStyle: TextStyle(
+          fontFamily: 'Rajdhani',
+          fontWeight: FontWeight.w700,
+          fontSize: 20,
+          color: onSurface,
+        ),
+        iconTheme: IconThemeData(color: onSurface),
+      ),
+      textTheme: TextTheme(
+        displayLarge: TextStyle(
+            fontFamily: 'Rajdhani',
+            fontWeight: FontWeight.w700,
+            color: onSurface),
+        displayMedium: TextStyle(
+            fontFamily: 'Rajdhani',
+            fontWeight: FontWeight.w700,
+            color: onSurface),
+        headlineLarge: TextStyle(
+            fontFamily: 'Rajdhani',
+            fontWeight: FontWeight.w700,
+            fontSize: 34,
+            color: onSurface),
+        headlineMedium: TextStyle(
+            fontFamily: 'Rajdhani',
+            fontWeight: FontWeight.w700,
+            fontSize: 26,
+            color: onSurface),
+        titleLarge: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+            color: onSurface),
+        titleMedium: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: onSurface),
+        bodyLarge: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w400,
+            fontSize: 15,
+            color: isDark ? AppColors.textSecondary : const Color(0x99000000)),
+        bodyMedium: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w400,
+            fontSize: 14,
+            color: isDark ? AppColors.textSecondary : const Color(0x99000000)),
+        bodySmall: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w400,
+            fontSize: 12,
+            color: isDark ? AppColors.textSecondary : const Color(0x99000000)),
+        labelSmall: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w400,
+            fontSize: 11,
+            color: isDark
+                ? AppColors.textTertiary
+                : const Color(0x55000000)),
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _FadeSlideTransitionBuilder(),
+          TargetPlatform.iOS: _FadeSlideTransitionBuilder(),
+        },
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: surface,
+        contentTextStyle: TextStyle(
+          fontFamily: 'Inter',
+          fontSize: 14,
+          color: onSurface,
+        ),
+      ),
+      dialogTheme: DialogTheme(
+        backgroundColor: surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      useMaterial3: true,
     );
   }
 }
