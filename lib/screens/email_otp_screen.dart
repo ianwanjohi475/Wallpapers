@@ -102,9 +102,9 @@ class _EmailOtpScreenState extends State<EmailOtpScreen>
         (_) => false,
       );
     } on AuthException catch (e) {
-      setState(() => _error = e.message);
+      setState(() => _error = _friendlyAuthError(e.message));
     } catch (e) {
-      setState(() => _error = 'Verification failed. Try again.');
+      setState(() => _error = _friendlyNetworkError(e));
     } finally {
       if (mounted) setState(() => _verifying = false);
     }
@@ -132,6 +132,30 @@ class _EmailOtpScreenState extends State<EmailOtpScreen>
         ),
       );
     }
+  }
+
+  static String _friendlyAuthError(String raw) {
+    final r = raw.toLowerCase();
+    if (r.contains('token') || r.contains('invalid') || r.contains('otp')) {
+      return 'Incorrect code. Please double-check and try again.';
+    }
+    if (r.contains('expired')) return 'Code expired. Tap "Resend" to get a new one.';
+    if (r.contains('rate') || r.contains('too many')) {
+      return 'Too many attempts. Please wait a moment and try again.';
+    }
+    return raw;
+  }
+
+  static String _friendlyNetworkError(Object e) {
+    final s = e.toString();
+    if (s.contains('SocketException') ||
+        s.contains('Connection reset') ||
+        s.contains('ClientException') ||
+        s.contains('NetworkException') ||
+        s.contains('Failed host lookup')) {
+      return 'No internet connection. Check your connection and try again.';
+    }
+    return 'Verification failed. Please try again.';
   }
 
   @override

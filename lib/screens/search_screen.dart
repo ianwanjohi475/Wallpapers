@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/app_colors.dart';
 import '../models/wallpaper_model.dart';
 import '../services/wallpaper_service.dart';
@@ -20,12 +21,10 @@ class _SearchScreenState extends State<SearchScreen> {
   String _query = '';
   Timer? _debounce;
   Future<List<WallpaperModel>>? _results;
+  List<String> _history = [];
 
-  static const _recentSearches = [
-    'Real Madrid 4K',
-    'World Cup Trophy Neon',
-    'Lusail Stadium Aerial',
-  ];
+  static const _historyKey = 'search_history';
+  static const _maxHistory = 10;
 
   static const _popularTags = [
     _Tag(icon: Icons.local_fire_department_rounded, label: 'Brazil'),
@@ -38,6 +37,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
+    _loadHistory();
     _ctrl.addListener(() {
       final txt = _ctrl.text;
       _debounce?.cancel();
@@ -53,6 +53,38 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
+  Future<void> _loadHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() => _history = prefs.getStringList(_historyKey) ?? []);
+    }
+  }
+
+  Future<void> _saveToHistory(String q) async {
+    final trimmed = q.trim();
+    if (trimmed.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final updated = [
+      trimmed,
+      ..._history.where((h) => h.toLowerCase() != trimmed.toLowerCase()),
+    ].take(_maxHistory).toList();
+    await prefs.setStringList(_historyKey, updated);
+    if (mounted) setState(() => _history = updated);
+  }
+
+  Future<void> _clearHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_historyKey);
+    if (mounted) setState(() => _history = []);
+  }
+
+  Future<void> _removeHistoryItem(String item) async {
+    final prefs = await SharedPreferences.getInstance();
+    final updated = _history.where((h) => h != item).toList();
+    await prefs.setStringList(_historyKey, updated);
+    if (mounted) setState(() => _history = updated);
+  }
+
   @override
   void dispose() {
     _debounce?.cancel();
@@ -60,10 +92,11 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  void _setQuery(String s) {
+  void _setQuery(String s, {bool saveHistory = false}) {
     _ctrl.text = s;
     _ctrl.selection =
         TextSelection.fromPosition(TextPosition(offset: _ctrl.text.length));
+    if (saveHistory) _saveToHistory(s);
   }
 
   @override
@@ -119,6 +152,11 @@ class _SearchScreenState extends State<SearchScreen> {
                                   fontSize: 15,
                                   color: Colors.white,
                                 ),
+                                onSubmitted: (v) {
+                                  if (v.trim().isNotEmpty) {
+                                    _saveToHistory(v.trim());
+                                  }
+                                },
                                 decoration: const InputDecoration(
                                   hintText:
                                       'Search teams, stadiums, styles...',
@@ -163,70 +201,89 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
             if (!hasQuery) ...[
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-                  child: Row(
-                    children: [
-                      const Text(
-                        'RECENT SEARCHES',
-                        style: TextStyle(
-                          fontFamily: 'Rajdhani',
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11,
-                          color: Color(0xB3FFD700),
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () => HapticFeedback.lightImpact(),
-                        child: const Text(
-                          'Clear All',
+              // Recent searches — only shown when the user has actually searched.
+              if (_history.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'RECENT SEARCHES',
                           style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
+                            fontFamily: 'Rajdhani',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
+                            color: Color(0xB3FFD700),
+                            letterSpacing: 1.2,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) => GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      _setQuery(_recentSearches[i]);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.history_rounded,
-                              color: AppColors.textTertiary, size: 16),
-                          const SizedBox(width: 12),
-                          Text(
-                            _recentSearches[i],
-                            style: const TextStyle(
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            _clearHistory();
+                          },
+                          child: const Text(
+                            'Clear All',
+                            style: TextStyle(
                               fontFamily: 'Inter',
-                              fontSize: 14,
+                              fontSize: 12,
                               color: AppColors.textSecondary,
                             ),
                           ),
-                          const Spacer(),
-                          const Icon(Icons.north_west_rounded,
-                              color: AppColors.textTertiary, size: 14),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                  childCount: _recentSearches.length,
                 ),
-              ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, i) {
+                      final item = _history[i];
+                      return GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          _setQuery(item, saveHistory: false);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.history_rounded,
+                                  color: AppColors.textTertiary, size: 16),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  item,
+                                  style: const TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  HapticFeedback.lightImpact();
+                                  _removeHistoryItem(item);
+                                },
+                                child: const Padding(
+                                  padding: EdgeInsets.only(left: 12),
+                                  child: Icon(Icons.close_rounded,
+                                      color: AppColors.textTertiary, size: 16),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    childCount: _history.length,
+                  ),
+                ),
+              ],
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
@@ -252,7 +309,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       return GestureDetector(
                         onTap: () {
                           HapticFeedback.lightImpact();
-                          _setQuery(tag.label);
+                          _setQuery(tag.label, saveHistory: true);
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(

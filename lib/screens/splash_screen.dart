@@ -93,15 +93,27 @@ class _SplashScreenState extends State<SplashScreen>
     }
     if (!mounted) return;
 
+    // Restore normal system UI (splash used immersiveSticky to hide both bars).
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+    );
+
     Widget dest;
     if (!onboardingDone) {
       dest = const OnboardingScreen();
-    } else if (auth.isSignedIn || auth.isGuest) {
-      dest = const MainScreen();
     } else {
-      dest = const LoginScreen();
+      // Always go to the dashboard. If the user has no session and hasn't
+      // explicitly continued as guest before, auto-guest them so they land
+      // on the home screen. Auth gates inside the app prompt sign-in only
+      // when they try to download or interact.
+      if (!auth.isSignedIn && !auth.isGuest) {
+        await auth.continueAsGuest();
+      }
+      dest = const MainScreen();
     }
 
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => dest,

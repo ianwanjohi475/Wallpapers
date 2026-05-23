@@ -54,12 +54,14 @@ class AuthService {
     return _sb.auth.signInWithPassword(email: email, password: password);
   }
 
-  // ----- Google OAuth (opens browser, returns via deep link) -------------
+  // ----- Google OAuth — opens Chrome Custom Tab (slides in-app, not full browser)
   Future<bool> signInWithGoogle() {
     return _sb.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: kAuthRedirectUrl,
-      authScreenLaunchMode: LaunchMode.externalApplication,
+      // externalNonBrowserApplication = Chrome Custom Tabs on Android,
+      // SFSafariViewController on iOS — both feel in-app, not a browser tab.
+      authScreenLaunchMode: LaunchMode.externalNonBrowserApplication,
     );
   }
 
