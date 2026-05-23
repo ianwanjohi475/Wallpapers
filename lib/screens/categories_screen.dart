@@ -114,7 +114,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 final loading = snap.connectionState != ConnectionState.done;
                 final data = snap.data ?? const {};
                 return GridView.builder(
-                  padding: EdgeInsets.fromLTRB(pad, 16, pad, 40),
+                  padding: EdgeInsets.fromLTRB(
+                      pad, 16, pad, MediaQuery.of(context).padding.bottom + 40),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: cols,
                     mainAxisSpacing: 12,

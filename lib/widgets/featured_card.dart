@@ -36,8 +36,9 @@ class FeaturedCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             CachedNetworkImage(
-              imageUrl: wallpaper.imageUrl,
+              imageUrl: wallpaper.previewUrl,
               fit: BoxFit.cover,
+              memCacheWidth: 1080,
               placeholder: (_, __) => ShimmerCard(height: 210),
               errorWidget: (_, __, ___) => Container(
                 color: AppColors.bgCard,

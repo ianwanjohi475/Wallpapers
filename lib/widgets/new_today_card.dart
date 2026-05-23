@@ -30,10 +30,11 @@ class NewTodayCard extends StatelessWidget {
         child: Stack(
           children: [
             CachedNetworkImage(
-              imageUrl: wallpaper.imageUrl,
+              imageUrl: wallpaper.gridUrl,
               width: 140,
               height: 200,
               fit: BoxFit.cover,
+              memCacheWidth: 400,
               placeholder: (_, __) => const ShimmerCard(height: 200),
               errorWidget: (_, __, ___) => Container(
                 height: 200,
