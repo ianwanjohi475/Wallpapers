@@ -149,7 +149,7 @@ class WcWallpapersApp extends StatelessWidget {
           color: onSurface,
         ),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
