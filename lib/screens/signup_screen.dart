@@ -1,14 +1,17 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/app_colors.dart';
 import '../painters/orb_painter.dart';
+import '../providers/auth_provider.dart';
 import '../services/auth_service.dart';
 import '../widgets/google_logo.dart';
 import 'email_otp_screen.dart';
 import 'legal_screen.dart';
 import 'login_screen.dart';
+import 'main_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -105,6 +108,21 @@ class _SignupScreenState extends State<SignupScreen>
     }
   }
 
+  Future<void> _continueAsGuest() async {
+    HapticFeedback.lightImpact();
+    await context.read<AuthProvider>().continueAsGuest();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const MainScreen(),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+      (_) => false,
+    );
+  }
+
   Future<void> _signupWithGoogle() async {
     HapticFeedback.lightImpact();
     setState(() {
@@ -153,10 +171,7 @@ class _SignupScreenState extends State<SignupScreen>
                         children: [
                           const SizedBox(height: 12),
                           GestureDetector(
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              Navigator.maybePop(context);
-                            },
+                            onTap: _continueAsGuest,
                             child: Container(
                               width: 40,
                               height: 40,
@@ -172,46 +187,7 @@ class _SignupScreenState extends State<SignupScreen>
                                   size: 18),
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          Row(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: AppColors.accentGold,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(Icons.sports_soccer_rounded,
-                                    color: AppColors.bgPrimary, size: 26),
-                              ),
-                              const SizedBox(width: 12),
-                              const Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'WC WALLPAPERS',
-                                    style: TextStyle(
-                                      fontFamily: 'Rajdhani',
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 16,
-                                      color: AppColors.accentGold,
-                                      letterSpacing: 1,
-                                    ),
-                                  ),
-                                  Text(
-                                    '2026',
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: 11,
-                                      color: AppColors.textTertiary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 40),
                           const Text(
                             'Create Account',
                             style: TextStyle(

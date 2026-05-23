@@ -144,10 +144,7 @@ class _LoginScreenState extends State<LoginScreen>
                         children: [
                           const SizedBox(height: 12),
                           GestureDetector(
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              Navigator.maybePop(context);
-                            },
+                            onTap: _continueAsGuest,
                             child: Container(
                               width: 40,
                               height: 40,
@@ -163,25 +160,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   size: 18),
                             ),
                           ),
-                          const SizedBox(height: 36),
-                          Center(
-                            child: Container(
-                              width: 72,
-                              height: 72,
-                              decoration: BoxDecoration(
-                                color:
-                                    AppColors.accentGold.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                    color: AppColors.accentGold
-                                        .withValues(alpha: 0.3),
-                                    width: 1),
-                              ),
-                              child: const Icon(Icons.sports_soccer_rounded,
-                                  color: AppColors.accentGold, size: 36),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 48),
                           const Center(
                             child: Text(
                               'Welcome Back',
