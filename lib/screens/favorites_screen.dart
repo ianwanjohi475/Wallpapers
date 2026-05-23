@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
 import '../painters/orb_painter.dart';
+import '../providers/auth_provider.dart';
 import '../providers/favorites_provider.dart';
+import '../widgets/auth_required_sheet.dart';
 import '../widgets/responsive_masonry.dart';
 
 class FavoritesScreen extends StatefulWidget {
@@ -17,6 +19,7 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _orbCtrl;
+  bool _syncing = false;
 
   @override
   void initState() {
@@ -25,6 +28,18 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       vsync: this,
       duration: const Duration(seconds: 22),
     )..repeat();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeSync());
+  }
+
+  Future<void> _maybeSync() async {
+    final auth = context.read<AuthProvider>();
+    if (!auth.isSignedIn || _syncing) return;
+    setState(() => _syncing = true);
+    try {
+      await context.read<FavoritesProvider>().syncWithServer();
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
   }
 
   @override
@@ -39,7 +54,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     final safeTop = MediaQuery.of(context).padding.top;
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
     final favProv = context.watch<FavoritesProvider>();
+    final auth = context.watch<AuthProvider>();
     final favs = favProv.getLikedWallpapers();
+    final isGuest = !auth.isSignedIn;
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -60,7 +77,6 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                   ),
                 ),
               ),
-              // Glassmorphism header
               Positioned(
                 top: 0,
                 left: 0,
@@ -87,31 +103,33 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                           Row(
                             children: [
                               Text(
-                                '${favs.length} wallpapers saved',
+                                '${favProv.likedCount} wallpaper${favProv.likedCount == 1 ? "" : "s"} saved',
                                 style: const TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 13,
                                   color: AppColors.textSecondary,
                                 ),
                               ),
-                              Container(
-                                width: 4,
-                                height: 4,
-                                margin: const EdgeInsets.symmetric(
-                                    horizontal: 8),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.textSecondary,
-                                  shape: BoxShape.circle,
+                              if (auth.isSignedIn) ...[
+                                Container(
+                                  width: 4,
+                                  height: 4,
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 8),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.textSecondary,
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                              ),
-                              const Text(
-                                'Synced to cloud',
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 13,
-                                  color: AppColors.accentGreen,
+                                const Text(
+                                  'Synced to cloud',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 13,
+                                    color: AppColors.accentGreen,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ],
@@ -120,60 +138,101 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                   ),
                 ),
               ),
-              // Sync button
-              Positioned(
-                top: safeTop + 14,
-                right: 24,
-                child: GestureDetector(
-                  onTap: () => HapticFeedback.lightImpact(),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(12),
+              if (auth.isSignedIn)
+                Positioned(
+                  top: safeTop + 14,
+                  right: 24,
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      _maybeSync();
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: _syncing
+                          ? const Padding(
+                              padding: EdgeInsets.all(10),
+                              child: CircularProgressIndicator(
+                                color: AppColors.accentGold,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(Icons.sync_rounded,
+                              color: Colors.white, size: 22),
                     ),
-                    child: const Icon(Icons.sync_rounded,
-                        color: Colors.white, size: 22),
                   ),
                 ),
-              ),
-              // Grid content or empty state
               Positioned.fill(
                 child: favs.isEmpty
                     ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.favorite_border_rounded,
-                                color: AppColors.textTertiary, size: 64),
-                            SizedBox(height: 16),
-                            Text(
-                              'No favorites yet',
-                              style: TextStyle(
-                                fontFamily: 'Rajdhani',
-                                fontWeight: FontWeight.w700,
-                                fontSize: 22,
-                                color: Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.favorite_border_rounded,
+                                  color: AppColors.textTertiary, size: 64),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'No favorites yet',
+                                style: TextStyle(
+                                  fontFamily: 'Rajdhani',
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 22,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Tap the heart on any wallpaper\nto save it here',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Tap the heart on any wallpaper\nto save it here',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 14,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
-                            ),
-                          ],
+                              if (isGuest) ...[
+                                const SizedBox(height: 20),
+                                GestureDetector(
+                                  onTap: () => showAuthRequiredSheet(
+                                    context,
+                                    title: 'Sync across devices',
+                                    message:
+                                        'Sign up to keep your favourites safe and access them on any phone.',
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 18, vertical: 10),
+                                    decoration: BoxDecoration(
+                                      gradient: AppColors.goldGradient,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Text(
+                                      'Create account',
+                                      style: TextStyle(
+                                        fontFamily: 'Rajdhani',
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        color: AppColors.bgPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                       )
                     : SingleChildScrollView(
                         padding: EdgeInsets.only(
                           top: safeTop + 100,
-                          bottom: bottomPadding + 80,
+                          bottom: bottomPadding + 24,
                           left: 16,
                           right: 16,
                         ),
@@ -182,45 +241,6 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                           alwaysLiked: true,
                         ),
                       ),
-              ),
-              // FAB
-              Positioned(
-                bottom: bottomPadding - 20,
-                right: 32,
-                child: GestureDetector(
-                  onTap: () => HapticFeedback.lightImpact(),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 16),
-                    decoration: BoxDecoration(
-                      color: AppColors.accentGold,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.accentGold.withValues(alpha: 0.27),
-                          blurRadius: 20,
-                        ),
-                      ],
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.sync_rounded,
-                            color: AppColors.bgPrimary, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'SYNC',
-                          style: TextStyle(
-                            fontFamily: 'Rajdhani',
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                            color: AppColors.bgPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ),
             ],
           );

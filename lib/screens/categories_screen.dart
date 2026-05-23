@@ -3,13 +3,18 @@ import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../core/app_colors.dart';
 import '../core/responsive.dart';
-import '../data/mock_data.dart';
 import '../models/wallpaper_model.dart';
+import '../services/wallpaper_service.dart';
 import 'browse_screen.dart';
 
-class CategoriesScreen extends StatelessWidget {
+class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
 
+  @override
+  State<CategoriesScreen> createState() => _CategoriesScreenState();
+}
+
+class _CategoriesScreenState extends State<CategoriesScreen> {
   static const _categories = [
     'Teams',
     'Stadiums',
@@ -20,6 +25,22 @@ class CategoriesScreen extends StatelessWidget {
     'Dark',
     'Flags',
   ];
+
+  late Future<Map<String, List<WallpaperModel>>> _data;
+
+  @override
+  void initState() {
+    super.initState();
+    _data = _load();
+  }
+
+  Future<Map<String, List<WallpaperModel>>> _load() async {
+    final entries = await Future.wait(_categories.map((c) async {
+      final items = await WallpaperService.instance.getByCategory(c);
+      return MapEntry(c, items);
+    }));
+    return Map.fromEntries(entries);
+  }
 
   static IconData _iconFor(String c) {
     switch (c.toLowerCase()) {
@@ -87,35 +108,42 @@ class CategoriesScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: GridView.builder(
-              padding: EdgeInsets.fromLTRB(pad, 16, pad, 40),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: cols,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 1.08,
-              ),
-              itemCount: _categories.length,
-              itemBuilder: (context, i) {
-                final cat = _categories[i];
-                final items = MockData.getByCategory(cat);
-                return _CategoryCard(
-                  name: cat,
-                  icon: _iconFor(cat),
-                  count: items.length,
-                  cover: items.isNotEmpty ? items.first : null,
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    Navigator.push(
-                      context,
-                      PageRouteBuilder(
-                        pageBuilder: (_, __, ___) =>
-                            BrowseScreen(initialCategory: cat),
-                        transitionsBuilder: (_, anim, __, child) =>
-                            FadeTransition(opacity: anim, child: child),
-                        transitionDuration:
-                            const Duration(milliseconds: 350),
-                      ),
+            child: FutureBuilder<Map<String, List<WallpaperModel>>>(
+              future: _data,
+              builder: (context, snap) {
+                final loading = snap.connectionState != ConnectionState.done;
+                final data = snap.data ?? const {};
+                return GridView.builder(
+                  padding: EdgeInsets.fromLTRB(pad, 16, pad, 40),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: cols,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 1.08,
+                  ),
+                  itemCount: _categories.length,
+                  itemBuilder: (context, i) {
+                    final cat = _categories[i];
+                    final items = data[cat] ?? const <WallpaperModel>[];
+                    return _CategoryCard(
+                      name: cat,
+                      icon: _iconFor(cat),
+                      count: loading ? null : items.length,
+                      cover: items.isNotEmpty ? items.first : null,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (_, __, ___) =>
+                                BrowseScreen(initialCategory: cat),
+                            transitionsBuilder: (_, anim, __, child) =>
+                                FadeTransition(opacity: anim, child: child),
+                            transitionDuration:
+                                const Duration(milliseconds: 350),
+                          ),
+                        );
+                      },
                     );
                   },
                 );
@@ -131,7 +159,7 @@ class CategoriesScreen extends StatelessWidget {
 class _CategoryCard extends StatelessWidget {
   final String name;
   final IconData icon;
-  final int count;
+  final int? count;
   final WallpaperModel? cover;
   final VoidCallback onTap;
 
@@ -154,8 +182,9 @@ class _CategoryCard extends StatelessWidget {
           children: [
             if (cover != null)
               CachedNetworkImage(
-                imageUrl: cover!.imageUrl,
+                imageUrl: cover!.gridUrl,
                 fit: BoxFit.cover,
+                memCacheWidth: 500,
                 fadeInDuration: const Duration(milliseconds: 300),
                 placeholder: (_, __) => Container(color: AppColors.bgCard),
                 errorWidget: (_, __, ___) =>
@@ -206,7 +235,9 @@ class _CategoryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '$count wallpaper${count == 1 ? '' : 's'}',
+                    count == null
+                        ? 'Loading...'
+                        : '$count wallpaper${count == 1 ? '' : 's'}',
                     style: const TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 11,

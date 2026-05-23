@@ -1,9 +1,9 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
-import '../data/mock_data.dart';
 import '../models/wallpaper_model.dart';
 import '../providers/favorites_provider.dart';
 import '../screens/detail_screen.dart';
@@ -55,18 +55,24 @@ class _WallpaperGridCardState extends State<WallpaperGridCard>
     _heartCtrl.forward(from: 0);
   }
 
+  String _formatCount(int n) {
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}k';
+    return '$n';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final w = widget.wallpaper;
     final isLiked = widget.alwaysLiked ||
-        context.watch<FavoritesProvider>().isLiked(widget.wallpaper.id);
+        context.watch<FavoritesProvider>().isLiked(w.id);
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
         Navigator.push(
           context,
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) =>
-                DetailScreen(wallpaper: widget.wallpaper),
+            pageBuilder: (_, __, ___) => DetailScreen(wallpaper: w),
             transitionsBuilder: (_, anim, __, child) {
               return FadeTransition(
                 opacity: anim,
@@ -87,7 +93,7 @@ class _WallpaperGridCardState extends State<WallpaperGridCard>
         );
       },
       child: Hero(
-        tag: 'wall_${widget.wallpaper.id}',
+        tag: 'wall_${w.id}',
         child: ClipRRect(
           borderRadius: BorderRadius.circular(14),
           child: SizedBox(
@@ -96,9 +102,10 @@ class _WallpaperGridCardState extends State<WallpaperGridCard>
               fit: StackFit.expand,
               children: [
                 CachedNetworkImage(
-                  imageUrl: widget.wallpaper.imageUrl,
+                  imageUrl: w.gridUrl,
                   fit: BoxFit.cover,
-                  fadeInDuration: const Duration(milliseconds: 300),
+                  memCacheWidth: 600,
+                  fadeInDuration: const Duration(milliseconds: 250),
                   placeholder: (_, __) =>
                       ShimmerCard(height: widget.height),
                   errorWidget: (_, __, ___) => Container(
@@ -109,6 +116,17 @@ class _WallpaperGridCardState extends State<WallpaperGridCard>
                     ),
                   ),
                 ),
+                if (w.isPremium)
+                  Positioned.fill(
+                    child: ClipRRect(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 0.8, sigmaY: 0.8),
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.08),
+                        ),
+                      ),
+                    ),
+                  ),
                 Positioned.fill(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
@@ -124,7 +142,7 @@ class _WallpaperGridCardState extends State<WallpaperGridCard>
                     ),
                   ),
                 ),
-                if (widget.wallpaper.isPremium)
+                if (w.isPremium)
                   Positioned(
                     top: 8,
                     right: 8,
@@ -150,7 +168,7 @@ class _WallpaperGridCardState extends State<WallpaperGridCard>
                           color: AppColors.textSecondary, size: 12),
                       const SizedBox(width: 3),
                       Text(
-                        MockData.formatCount(widget.wallpaper.downloadCount),
+                        _formatCount(widget.wallpaper.downloadCount),
                         style: const TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 11,

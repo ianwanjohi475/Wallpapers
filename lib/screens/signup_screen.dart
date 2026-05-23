@@ -1,12 +1,14 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/app_colors.dart';
 import '../painters/orb_painter.dart';
+import '../services/auth_service.dart';
 import '../widgets/google_logo.dart';
+import 'email_otp_screen.dart';
 import 'legal_screen.dart';
 import 'login_screen.dart';
-import 'main_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -23,7 +25,9 @@ class _SignupScreenState extends State<SignupScreen>
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
   bool _loading = false;
+  bool _googleLoading = false;
   bool _agreedToTerms = false;
+  String? _error;
 
   final _termsRecognizer = TapGestureRecognizer();
   final _privacyRecognizer = TapGestureRecognizer();
@@ -68,33 +72,56 @@ class _SignupScreenState extends State<SignupScreen>
   Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_agreedToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please agree to the Terms & Privacy Policy'),
-          backgroundColor: AppColors.bgCard,
-        ),
-      );
+      setState(() => _error = 'Please agree to the Terms & Privacy Policy');
       return;
     }
     HapticFeedback.lightImpact();
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
-    setState(() => _loading = false);
-    Navigator.of(context).pushAndRemoveUntil(
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const MainScreen(),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 600),
-      ),
-      (_) => false,
-    );
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    final email = _emailCtrl.text.trim();
+    try {
+      await AuthService.instance.signUpWithEmail(
+        email: email,
+        password: _passwordCtrl.text,
+        fullName: _nameCtrl.text.trim(),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => EmailOtpScreen(email: email),
+          transitionsBuilder: (_, anim, __, child) =>
+              FadeTransition(opacity: anim, child: child),
+          transitionDuration: const Duration(milliseconds: 350),
+        ),
+      );
+    } on AuthException catch (e) {
+      setState(() => _error = e.message);
+    } catch (e) {
+      setState(() => _error = 'Could not create account. Try again.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _signupWithGoogle() async {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _googleLoading = true;
+      _error = null;
+    });
+    try {
+      await AuthService.instance.signInWithGoogle();
+    } catch (_) {
+      setState(() => _error = 'Google sign-up failed. Try again.');
+    } finally {
+      if (mounted) setState(() => _googleLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final safeTop = MediaQuery.of(context).padding.top;
     final safeBottom = MediaQuery.of(context).padding.bottom;
     final size = MediaQuery.of(context).size;
 
@@ -125,7 +152,6 @@ class _SignupScreenState extends State<SignupScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 12),
-                          // Back button
                           GestureDetector(
                             onTap: () {
                               HapticFeedback.lightImpact();
@@ -140,12 +166,13 @@ class _SignupScreenState extends State<SignupScreen>
                                 border: Border.all(
                                     color: AppColors.borderSubtle, width: 0.5),
                               ),
-                              child: const Icon(Icons.arrow_back_ios_new_rounded,
-                                  color: Colors.white, size: 18),
+                              child: const Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                  color: Colors.white,
+                                  size: 18),
                             ),
                           ),
-                          const SizedBox(height: 32),
-                          // Logo + title
+                          const SizedBox(height: 24),
                           Row(
                             children: [
                               Container(
@@ -184,7 +211,7 @@ class _SignupScreenState extends State<SignupScreen>
                               ),
                             ],
                           ),
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 24),
                           const Text(
                             'Create Account',
                             style: TextStyle(
@@ -203,38 +230,108 @@ class _SignupScreenState extends State<SignupScreen>
                               color: AppColors.textSecondary,
                             ),
                           ),
-                          const SizedBox(height: 36),
-                          // Name field
+                          const SizedBox(height: 28),
+                          // Google FIRST per user request
+                          GestureDetector(
+                            onTap: _googleLoading ? null : _signupWithGoogle,
+                            child: Container(
+                              height: 54,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 12,
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: _googleLoading
+                                    ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                            color: AppColors.bgPrimary,
+                                            strokeWidth: 2),
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          GoogleLogo(size: 20),
+                                          SizedBox(width: 12),
+                                          Text(
+                                            'Continue with Google',
+                                            style: TextStyle(
+                                              fontFamily: 'Inter',
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 15,
+                                              color: AppColors.bgPrimary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              const Expanded(
+                                  child: Divider(
+                                      color: AppColors.borderSubtle,
+                                      thickness: 0.5)),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text('or use email',
+                                    style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 12,
+                                        color: AppColors.textTertiary)),
+                              ),
+                              const Expanded(
+                                  child: Divider(
+                                      color: AppColors.borderSubtle,
+                                      thickness: 0.5)),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
                           _InputField(
                             controller: _nameCtrl,
                             label: 'Full Name',
                             hint: 'e.g. Alex Rivera',
                             icon: Icons.person_rounded,
+                            autofillHints: const [AutofillHints.name],
                             validator: (v) =>
-                                (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
+                                (v == null || v.trim().isEmpty)
+                                    ? 'Enter your name'
+                                    : null,
                           ),
                           const SizedBox(height: 16),
-                          // Email field
                           _InputField(
                             controller: _emailCtrl,
                             label: 'Email Address',
                             hint: 'you@example.com',
                             icon: Icons.email_rounded,
                             keyboardType: TextInputType.emailAddress,
+                            autofillHints: const [AutofillHints.email],
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty) return 'Enter your email';
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Enter your email';
+                              }
                               if (!v.contains('@')) return 'Enter a valid email';
                               return null;
                             },
                           ),
                           const SizedBox(height: 16),
-                          // Password field
                           _InputField(
                             controller: _passwordCtrl,
                             label: 'Password',
                             hint: 'Min. 8 characters',
                             icon: Icons.lock_rounded,
                             obscureText: _obscurePassword,
+                            autofillHints: const [AutofillHints.newPassword],
                             suffix: GestureDetector(
                               onTap: () => setState(
                                   () => _obscurePassword = !_obscurePassword),
@@ -247,13 +344,25 @@ class _SignupScreenState extends State<SignupScreen>
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Enter a password';
-                              if (v.length < 8) return 'Password must be 8+ characters';
+                              if (v == null || v.isEmpty) {
+                                return 'Enter a password';
+                              }
+                              if (v.length < 8) {
+                                return 'Password must be 8+ characters';
+                              }
                               return null;
                             },
                           ),
-                          const SizedBox(height: 20),
-                          // Terms checkbox
+                          const SizedBox(height: 8),
+                          const Text(
+                            'We\'ll email you a 6-digit confirmation code.',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12,
+                              color: AppColors.textTertiary,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           GestureDetector(
                             onTap: () {
                               HapticFeedback.selectionClick();
@@ -298,8 +407,10 @@ class _SignupScreenState extends State<SignupScreen>
                                           text: 'Terms of Service',
                                           style: const TextStyle(
                                             color: AppColors.accentGold,
-                                            decoration: TextDecoration.underline,
-                                            decorationColor: AppColors.accentGold,
+                                            decoration:
+                                                TextDecoration.underline,
+                                            decorationColor:
+                                                AppColors.accentGold,
                                           ),
                                           recognizer: _termsRecognizer,
                                         ),
@@ -308,8 +419,10 @@ class _SignupScreenState extends State<SignupScreen>
                                           text: 'Privacy Policy',
                                           style: const TextStyle(
                                             color: AppColors.accentGold,
-                                            decoration: TextDecoration.underline,
-                                            decorationColor: AppColors.accentGold,
+                                            decoration:
+                                                TextDecoration.underline,
+                                            decorationColor:
+                                                AppColors.accentGold,
                                           ),
                                           recognizer: _privacyRecognizer,
                                         ),
@@ -320,8 +433,38 @@ class _SignupScreenState extends State<SignupScreen>
                               ],
                             ),
                           ),
-                          const SizedBox(height: 32),
-                          // Signup button
+                          if (_error != null) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                    color: Colors.red.withValues(alpha: 0.3),
+                                    width: 0.5),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.error_outline_rounded,
+                                      color: Colors.redAccent, size: 16),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _error!,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 12,
+                                        color: Colors.redAccent,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 24),
                           GestureDetector(
                             onTap: _loading ? null : _signup,
                             child: AnimatedContainer(
@@ -366,42 +509,7 @@ class _SignupScreenState extends State<SignupScreen>
                               ),
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          // Divider
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                    color: AppColors.borderSubtle,
-                                    thickness: 0.5),
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
-                                child: Text(
-                                  'or',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 13,
-                                    color: AppColors.textTertiary,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                    color: AppColors.borderSubtle,
-                                    thickness: 0.5),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          // Google button
-                          _SocialButton(
-                            leading: const GoogleLogo(size: 18),
-                            label: 'Continue with Google',
-                            onTap: () => HapticFeedback.lightImpact(),
-                          ),
-                          const SizedBox(height: 12),
-                          // Already have account
+                          const SizedBox(height: 20),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -465,6 +573,7 @@ class _InputField extends StatelessWidget {
   final TextInputType? keyboardType;
   final Widget? suffix;
   final String? Function(String?)? validator;
+  final List<String>? autofillHints;
 
   const _InputField({
     required this.controller,
@@ -475,6 +584,7 @@ class _InputField extends StatelessWidget {
     this.keyboardType,
     this.suffix,
     this.validator,
+    this.autofillHints,
   });
 
   @override
@@ -496,6 +606,8 @@ class _InputField extends StatelessWidget {
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
+          autofillHints: autofillHints,
+          autocorrect: false,
           validator: validator,
           style: const TextStyle(
             fontFamily: 'Inter',
@@ -522,15 +634,18 @@ class _InputField extends StatelessWidget {
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.borderSubtle, width: 0.5),
+              borderSide:
+                  const BorderSide(color: AppColors.borderSubtle, width: 0.5),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.borderSubtle, width: 0.5),
+              borderSide:
+                  const BorderSide(color: AppColors.borderSubtle, width: 0.5),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.accentGold, width: 1),
+              borderSide:
+                  const BorderSide(color: AppColors.accentGold, width: 1),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
@@ -544,49 +659,6 @@ class _InputField extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _SocialButton extends StatelessWidget {
-  final Widget leading;
-  final String label;
-  final VoidCallback onTap;
-
-  const _SocialButton({
-    required this.leading,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 52,
-        decoration: BoxDecoration(
-          color: AppColors.bgCard,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.borderSubtle, width: 0.5),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            leading,
-            const SizedBox(width: 10),
-            Text(
-              label,
-              style: const TextStyle(
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

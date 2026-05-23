@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/app_colors.dart';
 import '../painters/orb_painter.dart';
+import '../providers/auth_provider.dart';
+import 'login_screen.dart';
 import 'onboarding_screen.dart';
 import 'main_screen.dart';
 
@@ -61,11 +64,13 @@ class _SplashScreenState extends State<SplashScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _titleCtrl, curve: Curves.easeOutCubic));
 
-    _subtitleFade = CurvedAnimation(parent: _subtitleCtrl, curve: Curves.easeOut);
+    _subtitleFade =
+        CurvedAnimation(parent: _subtitleCtrl, curve: Curves.easeOut);
     _subtitleSlide = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _subtitleCtrl, curve: Curves.easeOutCubic));
+    ).animate(
+        CurvedAnimation(parent: _subtitleCtrl, curve: Curves.easeOutCubic));
 
     Future.delayed(const Duration(milliseconds: 400), () {
       if (mounted) _titleCtrl.forward();
@@ -74,17 +79,29 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) _subtitleCtrl.forward();
     });
 
-    Future.delayed(const Duration(milliseconds: 3200), _navigate);
+    Future.delayed(const Duration(milliseconds: 2800), _navigate);
   }
 
   Future<void> _navigate() async {
     if (!mounted) return;
     final prefs = await SharedPreferences.getInstance();
-    final done = prefs.getString('onboarding_done');
-    final dest = done == 'true'
-        ? const MainScreen()
-        : const OnboardingScreen();
+    final onboardingDone = prefs.getString('onboarding_done') == 'true';
+    final auth = context.read<AuthProvider>();
+    var attempts = 0;
+    while (auth.bootstrapping && attempts++ < 50) {
+      await Future.delayed(const Duration(milliseconds: 40));
+    }
     if (!mounted) return;
+
+    Widget dest;
+    if (!onboardingDone) {
+      dest = const OnboardingScreen();
+    } else if (auth.isSignedIn || auth.isGuest) {
+      dest = const MainScreen();
+    } else {
+      dest = const LoginScreen();
+    }
+
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => dest,
@@ -129,7 +146,8 @@ class _SplashScreenState extends State<SplashScreen>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.accentGold.withValues(alpha: 0.4),
+                              color: AppColors.accentGold
+                                  .withValues(alpha: 0.4),
                               blurRadius: 40,
                               spreadRadius: 4,
                             ),
@@ -201,18 +219,21 @@ class _SplashScreenState extends State<SplashScreen>
                 right: 0,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(3, (i) => Padding(
-                    padding: EdgeInsets.only(left: i == 0 ? 0 : 14),
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: AppColors.accentGold
-                            .withValues(alpha: 1.0 - i * 0.32),
-                        shape: BoxShape.circle,
+                  children: List.generate(
+                    3,
+                    (i) => Padding(
+                      padding: EdgeInsets.only(left: i == 0 ? 0 : 14),
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: AppColors.accentGold
+                              .withValues(alpha: 1.0 - i * 0.32),
+                          shape: BoxShape.circle,
+                        ),
                       ),
                     ),
-                  )),
+                  ),
                 ),
               ),
               Positioned(

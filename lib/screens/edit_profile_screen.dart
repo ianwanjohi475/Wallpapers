@@ -1,7 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
 import '../core/responsive.dart';
+import '../providers/auth_provider.dart';
+import '../services/profile_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -11,12 +15,32 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameCtrl = TextEditingController(text: 'Alex Rivera');
-  final _emailCtrl = TextEditingController(text: 'alex.rivera@example.com');
-  final _bioCtrl =
-      TextEditingController(text: 'Die-hard football fan since 2010.');
+  final _nameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _bioCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _saving = false;
+  bool _loaded = false;
+  String? _avatarUrl;
+  String _initials = 'WC';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  Future<void> _load() async {
+    final profile = context.read<AuthProvider>().profile;
+    if (profile != null) {
+      _nameCtrl.text = profile.name ?? '';
+      _emailCtrl.text = profile.email ?? '';
+      _bioCtrl.text = profile.bio ?? '';
+      _avatarUrl = profile.avatarUrl;
+      _initials = profile.initials;
+    }
+    setState(() => _loaded = true);
+  }
 
   @override
   void dispose() {
@@ -30,24 +54,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
     HapticFeedback.lightImpact();
     setState(() => _saving = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (!mounted) return;
-    setState(() => _saving = false);
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check_circle_rounded,
-                color: AppColors.accentGreen, size: 18),
-            SizedBox(width: 8),
-            Text('Profile updated',
-                style: TextStyle(fontFamily: 'Inter', fontSize: 14)),
-          ],
+    try {
+      await ProfileService.instance.updateMine(
+        name: _nameCtrl.text.trim(),
+        bio: _bioCtrl.text.trim(),
+        email: _emailCtrl.text.trim(),
+      );
+      if (!mounted) return;
+      await context.read<AuthProvider>().refreshProfile();
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle_rounded,
+                  color: AppColors.accentGreen, size: 18),
+              SizedBox(width: 8),
+              Text('Profile updated',
+                  style: TextStyle(fontFamily: 'Inter', fontSize: 14)),
+            ],
+          ),
+          backgroundColor: AppColors.bgCard,
         ),
-        backgroundColor: AppColors.bgCard,
-      ),
-    );
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Save failed: ${e.toString()}'),
+          backgroundColor: AppColors.bgCard,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
@@ -93,161 +134,215 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
           Expanded(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxW),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 40),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Center(
-                          child: Stack(
+            child: !_loaded
+                ? const Center(
+                    child: CircularProgressIndicator(
+                        color: AppColors.accentGold))
+                : Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxW),
+                      child: SingleChildScrollView(
+                        padding:
+                            const EdgeInsets.fromLTRB(24, 28, 24, 40),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                width: 96,
-                                height: 96,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.bgElevated,
-                                  border: Border.all(
-                                      color: AppColors.accentGold, width: 2),
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'AR',
-                                    style: TextStyle(
-                                      fontFamily: 'Rajdhani',
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 34,
-                                      color: AppColors.accentGold,
+                              Center(
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      width: 96,
+                                      height: 96,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: AppColors.bgElevated,
+                                        border: Border.all(
+                                            color: AppColors.accentGold,
+                                            width: 2),
+                                      ),
+                                      child: ClipOval(
+                                        child: _avatarUrl != null
+                                            ? CachedNetworkImage(
+                                                imageUrl: _avatarUrl!,
+                                                fit: BoxFit.cover,
+                                                errorWidget: (_, __, ___) =>
+                                                    Center(
+                                                      child: Text(
+                                                        _initials,
+                                                        style: const TextStyle(
+                                                          fontFamily:
+                                                              'Rajdhani',
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          fontSize: 34,
+                                                          color: AppColors
+                                                              .accentGold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                              )
+                                            : Center(
+                                                child: Text(
+                                                  _initials,
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Rajdhani',
+                                                    fontWeight:
+                                                        FontWeight.w700,
+                                                    fontSize: 34,
+                                                    color:
+                                                        AppColors.accentGold,
+                                                  ),
+                                                ),
+                                              ),
+                                      ),
                                     ),
+                                    Positioned(
+                                      right: 0,
+                                      bottom: 0,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          HapticFeedback.lightImpact();
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  'Photo picker coming soon'),
+                                              backgroundColor:
+                                                  AppColors.bgCard,
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          width: 32,
+                                          height: 32,
+                                          decoration: BoxDecoration(
+                                            gradient: AppColors.goldGradient,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                                color: AppColors.bgPrimary,
+                                                width: 2),
+                                          ),
+                                          child: const Icon(
+                                              Icons.camera_alt_rounded,
+                                              color: AppColors.bgPrimary,
+                                              size: 15),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+                              _label('Full Name'),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: _nameCtrl,
+                                validator: (v) =>
+                                    (v == null || v.trim().isEmpty)
+                                        ? 'Enter your name'
+                                        : null,
+                                style: _fieldStyle,
+                                decoration: _decoration(
+                                    'Your name', Icons.person_rounded),
+                              ),
+                              const SizedBox(height: 20),
+                              _label('Email Address'),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: _emailCtrl,
+                                keyboardType: TextInputType.emailAddress,
+                                enabled: false,
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) {
+                                    return 'Enter your email';
+                                  }
+                                  if (!v.contains('@')) {
+                                    return 'Enter a valid email';
+                                  }
+                                  return null;
+                                },
+                                style: _fieldStyle.copyWith(
+                                    color:
+                                        Colors.white.withValues(alpha: 0.6)),
+                                decoration: _decoration(
+                                    'you@example.com', Icons.email_rounded),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.only(top: 6, left: 4),
+                                child: Text(
+                                  'Email changes go through verification — coming soon.',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 11,
+                                    color: AppColors.textTertiary,
                                   ),
                                 ),
                               ),
-                              Positioned(
-                                right: 0,
-                                bottom: 0,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    HapticFeedback.lightImpact();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Photo picker coming soon'),
-                                        backgroundColor: AppColors.bgCard,
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      gradient: AppColors.goldGradient,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: AppColors.bgPrimary,
-                                          width: 2),
-                                    ),
-                                    child: const Icon(Icons.camera_alt_rounded,
-                                        color: AppColors.bgPrimary, size: 15),
+                              const SizedBox(height: 20),
+                              _label('Bio'),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: _bioCtrl,
+                                maxLines: 3,
+                                maxLength: 120,
+                                style: _fieldStyle,
+                                decoration: _decoration(
+                                    'Tell us about yourself',
+                                    Icons.edit_note_rounded),
+                              ),
+                              const SizedBox(height: 12),
+                              GestureDetector(
+                                onTap: _saving ? null : _save,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 150),
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    gradient: _saving
+                                        ? null
+                                        : AppColors.goldGradient,
+                                    color: _saving ? AppColors.bgCard : null,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: _saving
+                                        ? null
+                                        : [
+                                            BoxShadow(
+                                              color: AppColors.accentGold
+                                                  .withValues(alpha: 0.35),
+                                              blurRadius: 20,
+                                            ),
+                                          ],
+                                  ),
+                                  child: Center(
+                                    child: _saving
+                                        ? const SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                              color: AppColors.accentGold,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'SAVE CHANGES',
+                                            style: TextStyle(
+                                              fontFamily: 'Rajdhani',
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 16,
+                                              color: AppColors.bgPrimary,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
                                   ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 32),
-                        _label('Full Name'),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _nameCtrl,
-                          validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Enter your name'
-                              : null,
-                          style: _fieldStyle,
-                          decoration:
-                              _decoration('Your name', Icons.person_rounded),
-                        ),
-                        const SizedBox(height: 20),
-                        _label('Email Address'),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _emailCtrl,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty) {
-                              return 'Enter your email';
-                            }
-                            if (!v.contains('@')) return 'Enter a valid email';
-                            return null;
-                          },
-                          style: _fieldStyle,
-                          decoration:
-                              _decoration('you@example.com', Icons.email_rounded),
-                        ),
-                        const SizedBox(height: 20),
-                        _label('Bio'),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _bioCtrl,
-                          maxLines: 3,
-                          maxLength: 120,
-                          style: _fieldStyle,
-                          decoration: _decoration(
-                              'Tell us about yourself', Icons.edit_note_rounded),
-                        ),
-                        const SizedBox(height: 12),
-                        GestureDetector(
-                          onTap: _saving ? null : _save,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 150),
-                            height: 56,
-                            decoration: BoxDecoration(
-                              gradient:
-                                  _saving ? null : AppColors.goldGradient,
-                              color: _saving ? AppColors.bgCard : null,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: _saving
-                                  ? null
-                                  : [
-                                      BoxShadow(
-                                        color: AppColors.accentGold
-                                            .withValues(alpha: 0.35),
-                                        blurRadius: 20,
-                                      ),
-                                    ],
-                            ),
-                            child: Center(
-                              child: _saving
-                                  ? const SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(
-                                        color: AppColors.accentGold,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'SAVE CHANGES',
-                                      style: TextStyle(
-                                        fontFamily: 'Rajdhani',
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 16,
-                                        color: AppColors.bgPrimary,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ),
           ),
         ],
       ),
@@ -283,6 +378,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         borderSide: const BorderSide(color: AppColors.borderSubtle, width: 0.5),
       ),
       enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.borderSubtle, width: 0.5),
+      ),
+      disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: AppColors.borderSubtle, width: 0.5),
       ),

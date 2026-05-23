@@ -1,8 +1,14 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../core/app_colors.dart';
+import '../providers/auth_provider.dart';
+import '../providers/favorites_provider.dart';
+import '../services/download_service.dart';
+import '../widgets/auth_required_sheet.dart';
 import 'about_screen.dart';
 import 'downloads_screen.dart';
 import 'edit_profile_screen.dart';
@@ -23,6 +29,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _newWallpapers = true;
   bool _featuredPacks = false;
   String _theme = 'Dark';
+  int? _downloadCount;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshDownloadCount();
+  }
+
+  Future<void> _refreshDownloadCount() async {
+    final auth = context.read<AuthProvider>();
+    if (!auth.isSignedIn) {
+      setState(() => _downloadCount = 0);
+      return;
+    }
+    final c = await DownloadService.instance.countMine();
+    if (mounted) setState(() => _downloadCount = c);
+  }
+
+  Future<void> _confirmLogout() async {
+    HapticFeedback.lightImpact();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.bgElevated,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Log out?',
+          style: TextStyle(
+            fontFamily: 'Rajdhani',
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+        content: const Text(
+          'You can sign back in anytime. Your favourites stay synced.',
+          style:
+              TextStyle(fontFamily: 'Inter', color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Log Out',
+                style: TextStyle(color: AppColors.accentGold)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await context.read<AuthProvider>().signOut();
+    await context.read<FavoritesProvider>().clearLocal();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const LoginScreen(),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 400),
+      ),
+      (_) => false,
+    );
+  }
 
   void _push(Widget page) {
     HapticFeedback.lightImpact();
@@ -40,6 +113,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
+    final auth = context.watch<AuthProvider>();
+    final favCount = context.watch<FavoritesProvider>().likedCount;
+    final profile = auth.profile;
+    final displayName = profile?.name ??
+        (auth.isGuest ? 'Guest' : profile?.email ?? 'Football Fan');
+    final initials = profile?.initials ?? (auth.isGuest ? 'G' : 'WC');
+    final isPremium = profile?.isPremium ?? false;
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -98,20 +178,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         padding: const EdgeInsets.all(2),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(32),
-                          child: Container(
-                            color: AppColors.bgElevated,
-                            child: const Center(
-                              child: Text(
-                                'AR',
-                                style: TextStyle(
-                                  fontFamily: 'Rajdhani',
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 24,
-                                  color: AppColors.accentGold,
-                                ),
-                              ),
-                            ),
-                          ),
+                          child: profile?.avatarUrl != null
+                              ? CachedNetworkImage(
+                                  imageUrl: profile!.avatarUrl!,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (_, __, ___) =>
+                                      _initialsBadge(initials),
+                                )
+                              : _initialsBadge(initials),
                         ),
                       ),
                     ),
@@ -122,44 +196,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Row(
                             children: [
-                              const Text(
-                                'Alex Rivera',
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: AppColors.accentGold
-                                      .withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                      color: AppColors.accentGold
-                                          .withValues(alpha: 0.3),
-                                      width: 0.5),
-                                ),
-                                child: const Text(
-                                  'PRO',
-                                  style: TextStyle(
+                              Flexible(
+                                child: Text(
+                                  displayName,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
                                     fontFamily: 'Inter',
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 10,
-                                    color: AppColors.accentGold,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
+                              if (isPremium) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.accentGold
+                                        .withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                        color: AppColors.accentGold
+                                            .withValues(alpha: 0.3),
+                                        width: 0.5),
+                                  ),
+                                  child: const Text(
+                                    'PRO',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 10,
+                                      color: AppColors.accentGold,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Fan since Oct 2023',
-                            style: TextStyle(
+                          Text(
+                            auth.isGuest
+                                ? 'Browsing as guest'
+                                : (profile?.email ?? 'Football fan'),
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 12,
                               color: AppColors.textSecondary,
@@ -169,7 +251,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => _push(const EditProfileScreen()),
+                      onPressed: () {
+                        if (!auth.isSignedIn) {
+                          showAuthRequiredSheet(context,
+                              title: 'Sign in to edit profile',
+                              message:
+                                  'Create an account to set your name, photo, and bio.');
+                          return;
+                        }
+                        _push(const EditProfileScreen());
+                      },
                       icon: const Icon(Icons.edit_rounded,
                           color: AppColors.textSecondary, size: 20),
                     ),
@@ -184,12 +275,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () => _push(const DownloadsScreen()),
-                        child: _StatCard(value: '124', label: 'Downloads'),
+                        child: _StatCard(
+                            value: (_downloadCount ?? 0).toString(),
+                            label: 'Downloads'),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: _StatCard(value: '47', label: 'Favorites'),
+                      child: _StatCard(
+                          value: favCount.toString(), label: 'Favorites'),
                     ),
                   ],
                 ),
@@ -402,13 +496,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: AppColors.textTertiary, size: 13),
               ),
               _SectionHeader('ACCOUNT'),
-              _SettingsTile(
-                icon: Icons.logout_rounded,
-                label: 'Log Out',
-                onTap: () => _push(const LoginScreen()),
-                trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                    color: AppColors.textTertiary, size: 13),
-              ),
+              if (auth.isSignedIn)
+                _SettingsTile(
+                  icon: Icons.logout_rounded,
+                  label: 'Log Out',
+                  subtitle: profile?.email,
+                  onTap: _confirmLogout,
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                      color: AppColors.textTertiary, size: 13),
+                )
+              else
+                _SettingsTile(
+                  icon: Icons.login_rounded,
+                  label: 'Sign In / Sign Up',
+                  subtitle: 'Sync favourites and download in 4K',
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.of(context).pushAndRemoveUntil(
+                      PageRouteBuilder(
+                        pageBuilder: (_, __, ___) => const LoginScreen(),
+                        transitionsBuilder: (_, anim, __, child) =>
+                            FadeTransition(opacity: anim, child: child),
+                        transitionDuration:
+                            const Duration(milliseconds: 400),
+                      ),
+                      (_) => false,
+                    );
+                  },
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                      color: AppColors.textTertiary, size: 13),
+                ),
               _SectionHeader('DANGER ZONE'),
               _SettingsTile(
                 icon: Icons.delete_forever_rounded,
@@ -460,6 +577,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+}
+
+Widget _initialsBadge(String initials) {
+  return Container(
+    color: AppColors.bgElevated,
+    child: Center(
+      child: Text(
+        initials,
+        style: const TextStyle(
+          fontFamily: 'Rajdhani',
+          fontWeight: FontWeight.w700,
+          fontSize: 24,
+          color: AppColors.accentGold,
+        ),
+      ),
+    ),
+  );
 }
 
 class _StatCard extends StatelessWidget {

@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/app_colors.dart';
 import '../painters/orb_painter.dart';
+import '../providers/auth_provider.dart';
+import '../providers/favorites_provider.dart';
+import '../services/auth_service.dart';
 import '../widgets/google_logo.dart';
 import 'forgot_password_screen.dart';
-import 'signup_screen.dart';
 import 'main_screen.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,7 +26,9 @@ class _LoginScreenState extends State<LoginScreen>
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
   bool _loading = false;
-  bool _rememberMe = false;
+  bool _googleLoading = false;
+  bool _rememberMe = true;
+  String? _error;
 
   late AnimationController _orbCtrl;
 
@@ -42,22 +49,66 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
-    HapticFeedback.lightImpact();
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
-    setState(() => _loading = false);
+  void _goMain() {
     Navigator.of(context).pushAndRemoveUntil(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const MainScreen(),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 600),
+        transitionDuration: const Duration(milliseconds: 500),
       ),
       (_) => false,
     );
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    HapticFeedback.lightImpact();
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await AuthService.instance.signInWithEmail(
+        email: _emailCtrl.text.trim(),
+        password: _passwordCtrl.text,
+      );
+      if (!mounted) return;
+      await context.read<FavoritesProvider>().syncWithServer();
+      if (!mounted) return;
+      _goMain();
+    } on AuthException catch (e) {
+      setState(() => _error = e.message);
+    } catch (e) {
+      setState(() => _error = 'Could not sign in. Check your connection.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _googleLoading = true;
+      _error = null;
+    });
+    try {
+      await AuthService.instance.signInWithGoogle();
+      // Browser opens — when the user finishes, the auth state listener
+      // in AuthProvider fires and the app reloads to MainScreen via
+      // the splash gate on next launch. Stay on this screen meanwhile.
+    } catch (e) {
+      setState(() => _error = 'Google sign-in failed. Try again.');
+    } finally {
+      if (mounted) setState(() => _googleLoading = false);
+    }
+  }
+
+  Future<void> _continueAsGuest() async {
+    HapticFeedback.lightImpact();
+    await context.read<AuthProvider>().continueAsGuest();
+    if (!mounted) return;
+    _goMain();
   }
 
   @override
@@ -106,21 +157,24 @@ class _LoginScreenState extends State<LoginScreen>
                                 border: Border.all(
                                     color: AppColors.borderSubtle, width: 0.5),
                               ),
-                              child: const Icon(Icons.arrow_back_ios_new_rounded,
-                                  color: Colors.white, size: 18),
+                              child: const Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                  color: Colors.white,
+                                  size: 18),
                             ),
                           ),
-                          const SizedBox(height: 48),
-                          // Logo
+                          const SizedBox(height: 36),
                           Center(
                             child: Container(
                               width: 72,
                               height: 72,
                               decoration: BoxDecoration(
-                                color: AppColors.accentGold.withValues(alpha: 0.1),
+                                color:
+                                    AppColors.accentGold.withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                    color: AppColors.accentGold.withValues(alpha: 0.3),
+                                    color: AppColors.accentGold
+                                        .withValues(alpha: 0.3),
                                     width: 1),
                               ),
                               child: const Icon(Icons.sports_soccer_rounded,
@@ -151,16 +205,84 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                             ),
                           ),
-                          const SizedBox(height: 40),
-                          // Email
+                          const SizedBox(height: 32),
+                          // Google FIRST (per request)
+                          GestureDetector(
+                            onTap: _googleLoading ? null : _loginWithGoogle,
+                            child: Container(
+                              height: 54,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 12,
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: _googleLoading
+                                    ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                            color: AppColors.bgPrimary,
+                                            strokeWidth: 2),
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          GoogleLogo(size: 20),
+                                          SizedBox(width: 12),
+                                          Text(
+                                            'Continue with Google',
+                                            style: TextStyle(
+                                              fontFamily: 'Inter',
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 15,
+                                              color: AppColors.bgPrimary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              const Expanded(
+                                  child: Divider(
+                                      color: AppColors.borderSubtle,
+                                      thickness: 0.5)),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text('or use email',
+                                    style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 12,
+                                        color: AppColors.textTertiary)),
+                              ),
+                              const Expanded(
+                                  child: Divider(
+                                      color: AppColors.borderSubtle,
+                                      thickness: 0.5)),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
                           _InputLabel('Email Address'),
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _emailCtrl,
                             keyboardType: TextInputType.emailAddress,
+                            autocorrect: false,
+                            autofillHints: const [AutofillHints.email],
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty)
+                              if (v == null || v.trim().isEmpty) {
                                 return 'Enter your email';
+                              }
                               if (!v.contains('@')) return 'Enter a valid email';
                               return null;
                             },
@@ -174,14 +296,15 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // Password
                           _InputLabel('Password'),
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _passwordCtrl,
                             obscureText: _obscurePassword,
-                            validator: (v) =>
-                                (v == null || v.isEmpty) ? 'Enter your password' : null,
+                            autofillHints: const [AutofillHints.password],
+                            validator: (v) => (v == null || v.isEmpty)
+                                ? 'Enter your password'
+                                : null,
                             style: const TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 15,
@@ -202,8 +325,38 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                             ),
                           ),
+                          if (_error != null) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                    color: Colors.red.withValues(alpha: 0.3),
+                                    width: 0.5),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.error_outline_rounded,
+                                      color: Colors.redAccent, size: 16),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _error!,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 12,
+                                        color: Colors.redAccent,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 16),
-                          // Remember me + Forgot
                           Row(
                             children: [
                               GestureDetector(
@@ -275,8 +428,7 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                             ],
                           ),
-                          const SizedBox(height: 36),
-                          // Login button
+                          const SizedBox(height: 28),
                           GestureDetector(
                             onTap: _loading ? null : _login,
                             child: AnimatedContainer(
@@ -320,53 +472,27 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          Row(
-                            children: [
-                              Expanded(
-                                  child: Divider(
-                                      color: AppColors.borderSubtle,
-                                      thickness: 0.5)),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
-                                child: Text('or',
-                                    style: TextStyle(
-                                        fontFamily: 'Inter',
-                                        fontSize: 13,
-                                        color: AppColors.textTertiary)),
-                              ),
-                              Expanded(
-                                  child: Divider(
-                                      color: AppColors.borderSubtle,
-                                      thickness: 0.5)),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 18),
                           GestureDetector(
-                            onTap: () => HapticFeedback.lightImpact(),
+                            onTap: _continueAsGuest,
                             child: Container(
                               height: 52,
                               decoration: BoxDecoration(
-                                color: AppColors.bgCard,
+                                color: Colors.transparent,
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
                                     color: AppColors.borderSubtle, width: 0.5),
                               ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  GoogleLogo(size: 18),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    'Continue with Google',
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14,
-                                      color: Colors.white,
-                                    ),
+                              child: const Center(
+                                child: Text(
+                                  'Continue as guest',
+                                  style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary,
                                   ),
-                                ],
+                                ),
                               ),
                             ),
                           ),

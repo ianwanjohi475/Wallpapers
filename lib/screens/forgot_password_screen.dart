@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/app_colors.dart';
 import '../core/responsive.dart';
 import '../painters/orb_painter.dart';
+import '../services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -36,16 +38,33 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     super.dispose();
   }
 
+  String? _error;
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     HapticFeedback.lightImpact();
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 1500));
-    if (!mounted) return;
     setState(() {
-      _loading = false;
-      _sent = true;
+      _loading = true;
+      _error = null;
     });
+    try {
+      await AuthService.instance.sendPasswordReset(_emailCtrl.text.trim());
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _sent = true;
+      });
+    } on AuthException catch (e) {
+      setState(() {
+        _loading = false;
+        _error = e.message;
+      });
+    } catch (_) {
+      setState(() {
+        _loading = false;
+        _error = 'Could not send reset email. Try again.';
+      });
+    }
   }
 
   @override
@@ -161,6 +180,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                 fontFamily: 'Inter', fontSize: 15, color: Colors.white),
             decoration: _decoration('you@example.com', Icons.email_rounded),
           ),
+          if (_error != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              _error!,
+              style: const TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 13,
+                color: Colors.redAccent,
+              ),
+            ),
+          ],
           const SizedBox(height: 32),
           GestureDetector(
             onTap: _loading ? null : _submit,

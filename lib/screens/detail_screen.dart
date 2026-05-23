@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,12 +6,20 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../core/app_colors.dart';
-import '../data/mock_data.dart';
 import '../models/wallpaper_model.dart';
+import '../providers/auth_provider.dart';
 import '../providers/favorites_provider.dart';
+import '../services/download_service.dart';
+import '../widgets/auth_required_sheet.dart';
 import '../widgets/glass_pill.dart';
 import '../widgets/rewarded_ad_sheet.dart';
 import '../widgets/shimmer_card.dart';
+
+String _formatCount(int n) {
+  if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+  if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}k';
+  return '$n';
+}
 
 class DetailScreen extends StatefulWidget {
   final WallpaperModel wallpaper;
@@ -51,7 +60,49 @@ class _DetailScreenState extends State<DetailScreen>
     _heartCtrl.forward(from: 0);
   }
 
-  void _showSetWallpaperSheet() {
+  Future<void> _download(BuildContext context) async {
+    HapticFeedback.lightImpact();
+    final auth = context.read<AuthProvider>();
+    if (!auth.isSignedIn) {
+      await showAuthRequiredSheet(
+        context,
+        title: 'Sign in to download',
+        message:
+            'Create a free account to download wallpapers in full 4K and save them to your gallery.',
+      );
+      return;
+    }
+    // Record download (best-effort).
+    unawaited(DownloadService.instance.record(widget.wallpaper.id));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle_rounded,
+                color: AppColors.accentGreen, size: 18),
+            SizedBox(width: 8),
+            Text('Saved to gallery!',
+                style: TextStyle(fontFamily: 'Inter', fontSize: 14)),
+          ],
+        ),
+        backgroundColor: AppColors.bgCard,
+      ),
+    );
+  }
+
+  Future<void> _showSetWallpaperSheet() async {
+    final auth = context.read<AuthProvider>();
+    if (!auth.isSignedIn) {
+      await showAuthRequiredSheet(
+        context,
+        title: 'Sign in to set wallpaper',
+        message:
+            'Create a free account to set this image as your home or lock screen.',
+      );
+      return;
+    }
+    if (!mounted) return;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -106,8 +157,9 @@ class _DetailScreenState extends State<DetailScreen>
               width: double.infinity,
               height: MediaQuery.of(context).size.height * 0.65,
               child: CachedNetworkImage(
-                imageUrl: w.imageUrl,
+                imageUrl: w.previewUrl,
                 fit: BoxFit.cover,
+                memCacheWidth: 1080,
                 fadeInDuration: const Duration(milliseconds: 300),
                 placeholder: (_, __) => ShimmerCard(
                     height: MediaQuery.of(context).size.height * 0.65),
@@ -242,7 +294,7 @@ class _DetailScreenState extends State<DetailScreen>
                           color: AppColors.textSecondary, size: 14),
                       const SizedBox(width: 4),
                       Text(
-                        MockData.formatCount(w.downloadCount),
+                        _formatCount(w.downloadCount),
                         style: const TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 13,
@@ -254,7 +306,7 @@ class _DetailScreenState extends State<DetailScreen>
                           color: AppColors.textSecondary, size: 14),
                       const SizedBox(width: 4),
                       Text(
-                        MockData.formatCount(w.likeCount),
+                        _formatCount(w.likeCount),
                         style: const TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 13,
@@ -269,15 +321,7 @@ class _DetailScreenState extends State<DetailScreen>
                       Expanded(
                         flex: 2,
                         child: GestureDetector(
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Saved to gallery!'),
-                                backgroundColor: AppColors.bgCard,
-                              ),
-                            );
-                          },
+                          onTap: () => _download(context),
                           child: Container(
                             height: 52,
                             decoration: BoxDecoration(

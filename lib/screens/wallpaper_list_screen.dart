@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/app_colors.dart';
+import '../core/responsive.dart';
 import '../models/wallpaper_model.dart';
-import '../widgets/wallpaper_grid_card.dart';
+import '../widgets/responsive_masonry.dart';
 
 class WallpaperListScreen extends StatelessWidget {
   final String title;
@@ -14,18 +15,10 @@ class WallpaperListScreen extends StatelessWidget {
     required this.wallpapers,
   });
 
-  static const _leftHeights = [240.0, 180.0, 220.0, 200.0, 260.0, 190.0];
-  static const _rightHeights = [180.0, 250.0, 200.0, 270.0, 170.0, 230.0];
-
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final leftItems = <WallpaperModel>[];
-    final rightItems = <WallpaperModel>[];
-    for (int i = 0; i < wallpapers.length; i++) {
-      if (i.isEven) leftItems.add(wallpapers[i]);
-      else rightItems.add(wallpapers[i]);
-    }
+    final pad = Responsive.pagePadding(context);
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -70,15 +63,15 @@ class WallpaperListScreen extends StatelessWidget {
             ],
           ),
           SliverPadding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 80 + bottomPadding),
+            padding: EdgeInsets.fromLTRB(pad, 16, pad, 80 + bottomPadding),
             sliver: SliverToBoxAdapter(
               child: wallpapers.isEmpty
-                  ? SizedBox(
+                  ? const SizedBox(
                       height: 300,
                       child: Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
-                          children: const [
+                          children: [
                             Icon(Icons.image_search_rounded,
                                 color: AppColors.textTertiary, size: 48),
                             SizedBox(height: 12),
@@ -94,43 +87,7 @@ class WallpaperListScreen extends StatelessWidget {
                         ),
                       ),
                     )
-                  : Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            children: List.generate(
-                              leftItems.length,
-                              (i) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: WallpaperGridCard(
-                                  wallpaper: leftItems[i],
-                                  height: _leftHeights[i % _leftHeights.length],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 40),
-                              ...List.generate(
-                                rightItems.length,
-                                (i) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: WallpaperGridCard(
-                                    wallpaper: rightItems[i],
-                                    height: _rightHeights[i % _rightHeights.length],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                  : ResponsiveMasonry(items: wallpapers),
             ),
           ),
         ],

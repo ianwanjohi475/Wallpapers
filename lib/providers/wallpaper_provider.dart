@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import '../models/wallpaper_model.dart';
-import '../data/mock_data.dart';
+import '../services/wallpaper_service.dart';
 
+/// Lightweight UI state for filter/search across screens.
+/// Heavy lifting (network) lives in [WallpaperService].
 class WallpaperProvider extends ChangeNotifier {
   String _searchQuery = '';
   String _selectedCategory = 'All';
@@ -10,34 +12,26 @@ class WallpaperProvider extends ChangeNotifier {
   String get selectedCategory => _selectedCategory;
 
   void setSearch(String query) {
+    if (query == _searchQuery) return;
     _searchQuery = query;
     notifyListeners();
   }
 
   void setCategory(String category) {
+    if (category == _selectedCategory) return;
     _selectedCategory = category;
     notifyListeners();
   }
 
-  List<WallpaperModel> get filteredWallpapers {
-    var all = MockData.getBrowseAll();
-    if (_selectedCategory != 'All') {
-      all = all.where((w) => w.category == _selectedCategory.toLowerCase()).toList();
+  Future<List<WallpaperModel>> fetchForBrowse() async {
+    if (_selectedCategory == 'All') {
+      return WallpaperService.instance.getAll();
     }
-    if (_searchQuery.isNotEmpty) {
-      final q = _searchQuery.toLowerCase();
-      all = all.where((w) =>
-        w.title.toLowerCase().contains(q) ||
-        w.category.toLowerCase().contains(q)).toList();
-    }
-    return all;
+    return WallpaperService.instance.getByCategory(_selectedCategory);
   }
 
-  List<WallpaperModel> get searchResults {
-    if (_searchQuery.isEmpty) return MockData.getSearchResults();
-    final q = _searchQuery.toLowerCase();
-    return MockData.getAll().where((w) =>
-      w.title.toLowerCase().contains(q) ||
-      w.category.toLowerCase().contains(q)).toList();
+  Future<List<WallpaperModel>> fetchSearch() async {
+    if (_searchQuery.trim().isEmpty) return const [];
+    return WallpaperService.instance.search(_searchQuery);
   }
 }

@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/app_colors.dart';
-import '../data/mock_data.dart';
+import '../models/wallpaper_model.dart';
+import '../services/wallpaper_service.dart';
 import '../widgets/ad_banner.dart';
 import '../widgets/responsive_masonry.dart';
+import '../widgets/shimmer_card.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -15,6 +18,8 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final _ctrl = TextEditingController();
   String _query = '';
+  Timer? _debounce;
+  Future<List<WallpaperModel>>? _results;
 
   static const _recentSearches = [
     'Real Madrid 4K',
@@ -34,19 +39,35 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     _ctrl.addListener(() {
-      setState(() => _query = _ctrl.text);
+      final txt = _ctrl.text;
+      _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 250), () {
+        if (!mounted) return;
+        setState(() {
+          _query = txt;
+          _results = txt.trim().isEmpty
+              ? null
+              : WallpaperService.instance.search(txt);
+        });
+      });
     });
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _ctrl.dispose();
     super.dispose();
   }
 
+  void _setQuery(String s) {
+    _ctrl.text = s;
+    _ctrl.selection =
+        TextSelection.fromPosition(TextPosition(offset: _ctrl.text.length));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final results = MockData.searchAll(_query);
     final hasQuery = _query.trim().isNotEmpty;
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
 
@@ -92,6 +113,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               child: TextField(
                                 controller: _ctrl,
                                 autofocus: false,
+                                textInputAction: TextInputAction.search,
                                 style: const TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 15,
@@ -114,10 +136,14 @@ class _SearchScreenState extends State<SearchScreen> {
                               GestureDetector(
                                 onTap: () {
                                   _ctrl.clear();
-                                  setState(() => _query = '');
+                                  setState(() {
+                                    _query = '';
+                                    _results = null;
+                                  });
                                 },
                                 child: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 14),
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 14),
                                   child: Icon(Icons.close_rounded,
                                       color: AppColors.textSecondary, size: 20),
                                 ),
@@ -173,14 +199,11 @@ class _SearchScreenState extends State<SearchScreen> {
                   (context, i) => GestureDetector(
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      _ctrl.text = _recentSearches[i];
-                      _ctrl.selection = TextSelection.fromPosition(
-                        TextPosition(offset: _ctrl.text.length),
-                      );
+                      _setQuery(_recentSearches[i]);
                     },
                     child: Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
                       child: Row(
                         children: [
                           const Icon(Icons.history_rounded,
@@ -229,10 +252,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       return GestureDetector(
                         onTap: () {
                           HapticFeedback.lightImpact();
-                          _ctrl.text = tag.label;
-                          _ctrl.selection = TextSelection.fromPosition(
-                            TextPosition(offset: _ctrl.text.length),
-                          );
+                          _setQuery(tag.label);
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -270,66 +290,89 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ] else ...[
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-                  child: Row(
-                    children: [
-                      const Text(
-                        'MATCHING RESULTS',
-                        style: TextStyle(
-                          fontFamily: 'Rajdhani',
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11,
-                          color: Color(0xB3FFD700),
-                          letterSpacing: 1.2,
+                child: FutureBuilder<List<WallpaperModel>>(
+                  future: _results,
+                  builder: (context, snap) {
+                    final loading =
+                        snap.connectionState != ConnectionState.done;
+                    final results = snap.data ?? const <WallpaperModel>[];
+
+                    if (loading) {
+                      return Padding(
+                        padding: EdgeInsets.fromLTRB(16, 24, 16, bottomPadding),
+                        child: const Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: ShimmerCard(height: 220)),
+                            SizedBox(width: 8),
+                            Expanded(child: ShimmerCard(height: 280)),
+                          ],
                         ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${results.length} Wallpapers',
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (results.isEmpty)
-                SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.image_search_rounded,
-                            color: AppColors.textTertiary, size: 48),
-                        SizedBox(height: 12),
-                        Text(
-                          'No results found',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            color: AppColors.textSecondary,
-                            fontSize: 14,
+                      );
+                    }
+
+                    if (results.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 60, 20, 60),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.image_search_rounded,
+                                  color: AppColors.textTertiary, size: 48),
+                              SizedBox(height: 12),
+                              Text(
+                                'No results found',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  color: AppColors.textSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding),
-                  sliver: SliverToBoxAdapter(
-                    child: Column(
-                      children: [
-                        const AdBanner(margin: EdgeInsets.only(bottom: 16)),
-                        ResponsiveMasonry(items: results),
-                      ],
-                    ),
-                  ),
+                      );
+                    }
+
+                    return Padding(
+                      padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(4, 4, 4, 12),
+                            child: Row(
+                              children: [
+                                const Text(
+                                  'MATCHING RESULTS',
+                                  style: TextStyle(
+                                    fontFamily: 'Rajdhani',
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 11,
+                                    color: Color(0xB3FFD700),
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  '${results.length} Wallpapers',
+                                  style: const TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const AdBanner(margin: EdgeInsets.only(bottom: 16)),
+                          ResponsiveMasonry(items: results),
+                        ],
+                      ),
+                    );
+                  },
                 ),
+              ),
             ],
           ],
         ),
