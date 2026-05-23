@@ -27,8 +27,21 @@ create index if not exists wallpapers_category_idx on public.wallpapers(category
 create index if not exists wallpapers_featured_idx on public.wallpapers(is_featured) where is_featured;
 create index if not exists wallpapers_new_idx on public.wallpapers(is_new) where is_new;
 create index if not exists wallpapers_downloads_idx on public.wallpapers(download_count desc);
+
+-- IMMUTABLE wrapper so the expression can be used in a GIN index.
+-- (to_tsvector(regconfig, text) is immutable, but PostgreSQL won't infer
+-- immutability through a concatenation of column references, so we wrap it.)
+create or replace function public.wallpapers_search_doc(t text, c text, tg text[])
+returns tsvector
+language sql
+immutable
+as $$
+  select to_tsvector('english'::regconfig,
+    coalesce(t,'') || ' ' || coalesce(c,'') || ' ' || coalesce(array_to_string(tg,' '),''))
+$$;
+
 create index if not exists wallpapers_search_idx on public.wallpapers using gin (
-  to_tsvector('english', coalesce(title,'') || ' ' || coalesce(category,'') || ' ' || coalesce(array_to_string(tags,' '),''))
+  public.wallpapers_search_doc(title, category, tags)
 );
 
 -- =====================================================================
@@ -148,11 +161,10 @@ create or replace function public.search_wallpapers(q text)
 returns setof public.wallpapers
 language sql stable as $$
   select * from public.wallpapers
-  where to_tsvector('english',
-    coalesce(title,'') || ' ' || coalesce(category,'') || ' ' || coalesce(array_to_string(tags,' '),''))
-    @@ plainto_tsquery('english', q)
-  or title ilike '%' || q || '%'
-  or category ilike '%' || q || '%'
+  where public.wallpapers_search_doc(title, category, tags)
+        @@ plainto_tsquery('english'::regconfig, q)
+     or title ilike '%' || q || '%'
+     or category ilike '%' || q || '%'
   order by download_count desc;
 $$;
 
