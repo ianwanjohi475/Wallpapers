@@ -138,8 +138,33 @@ class _SignupScreenState extends State<SignupScreen>
     }
   }
 
+  void _goMain() {
+    Navigator.of(context).pushAndRemoveUntil(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const MainScreen(),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+      (_) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, _) {
+        if (authProvider.isSignedIn) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _goMain();
+          });
+        }
+        return _buildSignupScreen(context);
+      },
+    );
+  }
+
+  Widget _buildSignupScreen(BuildContext context) {
     final safeBottom = MediaQuery.of(context).padding.bottom;
     final size = MediaQuery.of(context).size;
 

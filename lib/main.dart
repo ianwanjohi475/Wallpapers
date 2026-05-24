@@ -7,6 +7,7 @@ import 'core/app_colors.dart';
 import 'core/supabase_config.dart';
 import 'providers/auth_provider.dart';
 import 'providers/favorites_provider.dart';
+import 'providers/notifications_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/wallpaper_provider.dart';
 
@@ -29,6 +30,9 @@ void main() async {
 
   final themeProvider = ThemeProvider();
   await themeProvider.load();
+
+  final notificationsProvider = NotificationsProvider();
+  await notificationsProvider.loadFromPrefs();
 
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.manual,
@@ -56,6 +60,7 @@ void main() async {
         ChangeNotifierProvider.value(value: themeProvider),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider.value(value: favoritesProvider),
+        ChangeNotifierProvider.value(value: notificationsProvider),
         ChangeNotifierProvider(create: (_) => WallpaperProvider()),
       ],
       child: const WcWallpapersApp(),

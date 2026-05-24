@@ -10,7 +10,7 @@ import '../models/wallpaper_model.dart';
 import '../providers/favorites_provider.dart';
 import '../services/wallpaper_service.dart';
 import '../widgets/ad_banner.dart';
-import '../widgets/app_logo.dart';
+import '../widgets/wc_wallpapers_logo.dart';
 import '../widgets/glass_pill.dart';
 import '../widgets/responsive_masonry.dart';
 import '../widgets/shimmer_card.dart';
@@ -142,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       surfaceTintColor: Colors.transparent,
                       title: Row(
                         children: [
-                          AppLogo(size: 36),
+                          WCWallpapersLogo(size: 36),
                           const SizedBox(width: 10),
                           const Text(
                             'WALLPAPERS',

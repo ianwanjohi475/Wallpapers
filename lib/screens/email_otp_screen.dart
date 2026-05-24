@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/app_colors.dart';
 import '../core/responsive.dart';
 import '../painters/orb_painter.dart';
+import '../providers/notifications_provider.dart';
 import '../services/auth_service.dart';
 import 'main_screen.dart';
 
@@ -92,6 +94,8 @@ class _EmailOtpScreenState extends State<EmailOtpScreen>
           .verifySignupOtp(email: widget.email, token: code);
       if (!mounted) return;
       HapticFeedback.mediumImpact();
+      await context.read<NotificationsProvider>().addWelcomeNotification();
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
           pageBuilder: (_, __, ___) => const MainScreen(),

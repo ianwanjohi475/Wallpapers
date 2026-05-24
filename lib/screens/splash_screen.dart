@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/app_colors.dart';
 import '../painters/orb_painter.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/wc_wallpapers_logo.dart';
 import 'login_screen.dart';
 import 'onboarding_screen.dart';
 import 'main_screen.dart';
@@ -153,24 +154,7 @@ class _SplashScreenState extends State<SplashScreen>
                   children: [
                     ScaleTransition(
                       scale: _glowScale,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.accentGold
-                                  .withValues(alpha: 0.4),
-                              blurRadius: 40,
-                              spreadRadius: 4,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.emoji_events_rounded,
-                          size: 80,
-                          color: AppColors.accentGold,
-                        ),
-                      ),
+                      child: const WCWallpapersLogo(size: 80),
                     ),
                     const SizedBox(height: 28),
                     FadeTransition(

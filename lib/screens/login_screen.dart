@@ -113,6 +113,19 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, _) {
+        if (authProvider.isSignedIn) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _goMain();
+          });
+        }
+        return _buildLoginScreen(context);
+      },
+    );
+  }
+
+  Widget _buildLoginScreen(BuildContext context) {
     final safeBottom = MediaQuery.of(context).padding.bottom;
     final size = MediaQuery.of(context).size;
 
