@@ -108,13 +108,16 @@ class _WallpaperGridCardState extends State<WallpaperGridCard>
                   fadeInDuration: const Duration(milliseconds: 250),
                   placeholder: (_, __) =>
                       ShimmerCard(height: widget.height),
-                  errorWidget: (_, __, ___) => Container(
-                    color: AppColors.bgCard,
-                    child: const Center(
-                      child: Icon(Icons.broken_image_rounded,
-                          color: AppColors.textTertiary, size: 32),
-                    ),
-                  ),
+                  errorWidget: (context, __, ___) {
+                    final colors = AppThemeColors.of(context);
+                    return Container(
+                      color: colors.bgCard,
+                      child: Center(
+                        child: Icon(Icons.broken_image_rounded,
+                            color: colors.textTertiary, size: 32),
+                      ),
+                    );
+                  },
                 ),
                 if (w.isPremium)
                   Positioned.fill(

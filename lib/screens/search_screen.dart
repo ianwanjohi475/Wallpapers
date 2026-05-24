@@ -103,9 +103,10 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     final hasQuery = _query.trim().isNotEmpty;
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
+    final colors = AppThemeColors.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: colors.bgPrimary,
       extendBody: true,
       body: SafeArea(
         top: true,
@@ -122,48 +123,48 @@ class _SearchScreenState extends State<SearchScreen> {
                         HapticFeedback.lightImpact();
                         Navigator.maybePop(context);
                       },
-                      child: const Icon(Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white, size: 20),
+                      child: Icon(Icons.arrow_back_ios_new_rounded,
+                          color: colors.textPrimary, size: 20),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Container(
                         height: 48,
                         decoration: BoxDecoration(
-                          color: AppColors.bgCard,
+                          color: colors.bgCard,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.06),
+                              color: colors.borderSubtle,
                               width: 1),
                         ),
                         child: Row(
                           children: [
                             const SizedBox(width: 14),
-                            const Icon(Icons.search_rounded,
-                                color: AppColors.textSecondary, size: 20),
+                            Icon(Icons.search_rounded,
+                                color: colors.textSecondary, size: 20),
                             const SizedBox(width: 16),
                             Expanded(
                               child: TextField(
                                 controller: _ctrl,
                                 autofocus: false,
                                 textInputAction: TextInputAction.search,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 15,
-                                  color: Colors.white,
+                                  color: colors.textPrimary,
                                 ),
                                 onSubmitted: (v) {
                                   if (v.trim().isNotEmpty) {
                                     _saveToHistory(v.trim());
                                   }
                                 },
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   hintText:
                                       'Search teams, stadiums, styles...',
                                   hintStyle: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 15,
-                                    color: AppColors.textTertiary,
+                                    color: colors.textTertiary,
                                   ),
                                   border: InputBorder.none,
                                   isDense: true,
@@ -179,17 +180,17 @@ class _SearchScreenState extends State<SearchScreen> {
                                     _results = null;
                                   });
                                 },
-                                child: const Padding(
+                                child: Padding(
                                   padding:
-                                      EdgeInsets.symmetric(horizontal: 14),
+                                      const EdgeInsets.symmetric(horizontal: 14),
                                   child: Icon(Icons.close_rounded,
-                                      color: AppColors.textSecondary, size: 20),
+                                      color: colors.textSecondary, size: 20),
                                 ),
                               )
                             else ...[
                               const SizedBox(width: 16),
-                              const Icon(Icons.mic_none_rounded,
-                                  color: AppColors.textSecondary, size: 20),
+                              Icon(Icons.mic_none_rounded,
+                                  color: colors.textSecondary, size: 20),
                               const SizedBox(width: 14),
                             ],
                           ],
@@ -251,16 +252,16 @@ class _SearchScreenState extends State<SearchScreen> {
                               horizontal: 20, vertical: 10),
                           child: Row(
                             children: [
-                              const Icon(Icons.history_rounded,
-                                  color: AppColors.textTertiary, size: 16),
+                              Icon(Icons.history_rounded,
+                                  color: colors.textTertiary, size: 16),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   item,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 14,
-                                    color: AppColors.textSecondary,
+                                    color: colors.textSecondary,
                                   ),
                                 ),
                               ),
@@ -269,10 +270,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                   HapticFeedback.lightImpact();
                                   _removeHistoryItem(item);
                                 },
-                                child: const Padding(
-                                  padding: EdgeInsets.only(left: 12),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 12),
                                   child: Icon(Icons.close_rounded,
-                                      color: AppColors.textTertiary, size: 16),
+                                      color: colors.textTertiary, size: 16),
                                 ),
                               ),
                             ],
@@ -315,23 +316,23 @@ class _SearchScreenState extends State<SearchScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: AppColors.bgCard,
+                            color: colors.bgCard,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                                color: AppColors.borderSubtle, width: 0.5),
+                                color: colors.borderSubtle, width: 0.5),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(tag.icon,
-                                  color: AppColors.textTertiary, size: 16),
+                                  color: colors.textTertiary, size: 16),
                               const SizedBox(width: 6),
                               Text(
                                 tag.label,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 13,
-                                  color: AppColors.textSecondary,
+                                  color: colors.textSecondary,
                                 ),
                               ),
                             ],
@@ -374,15 +375,15 @@ class _SearchScreenState extends State<SearchScreen> {
                         child: Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
-                            children: const [
+                            children: [
                               Icon(Icons.image_search_rounded,
-                                  color: AppColors.textTertiary, size: 48),
-                              SizedBox(height: 12),
+                                  color: colors.textTertiary, size: 48),
+                              const SizedBox(height: 12),
                               Text(
                                 'No results found',
                                 style: TextStyle(
                                   fontFamily: 'Inter',
-                                  color: AppColors.textSecondary,
+                                  color: colors.textSecondary,
                                   fontSize: 14,
                                 ),
                               ),
@@ -413,10 +414,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                 const Spacer(),
                                 Text(
                                   '${results.length} Wallpapers',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
-                                    color: AppColors.textSecondary,
+                                    color: colors.textSecondary,
                                   ),
                                 ),
                               ],

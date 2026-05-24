@@ -144,9 +144,10 @@ class _DetailScreenState extends State<DetailScreen>
   Widget build(BuildContext context) {
     final safeTop = MediaQuery.of(context).padding.top;
     final safeBottom = MediaQuery.of(context).padding.bottom;
+    final colors = AppThemeColors.of(context);
     final w = widget.wallpaper;
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: colors.bgPrimary,
       extendBody: true,
       extendBodyBehindAppBar: true,
       body: Stack(
@@ -163,13 +164,16 @@ class _DetailScreenState extends State<DetailScreen>
                 fadeInDuration: const Duration(milliseconds: 300),
                 placeholder: (_, __) => ShimmerCard(
                     height: MediaQuery.of(context).size.height),
-                errorWidget: (_, __, ___) => Container(
-                  color: AppColors.bgCard,
-                  child: const Center(
-                    child: Icon(Icons.broken_image_rounded,
-                        color: AppColors.textTertiary, size: 48),
-                  ),
-                ),
+                errorWidget: (context, __, ___) {
+                  final c = AppThemeColors.of(context);
+                  return Container(
+                    color: c.bgCard,
+                    child: Center(
+                      child: Icon(Icons.broken_image_rounded,
+                          color: c.textTertiary, size: 48),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -527,10 +531,11 @@ class _SetWallpaperSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.bgElevated,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: colors.bgElevated,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -541,21 +546,21 @@ class _SetWallpaperSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: colors.textTertiary,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
           const SizedBox(height: 20),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               'Set As Wallpaper',
               style: TextStyle(
                 fontFamily: 'Rajdhani',
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
-                color: Colors.white,
+                color: colors.textPrimary,
               ),
             ),
           ),
@@ -563,31 +568,31 @@ class _SetWallpaperSheet extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.home_rounded,
                 color: AppColors.accentGold),
-            title: const Text('Home Screen',
+            title: Text('Home Screen',
                 style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 15,
-                    color: Colors.white)),
+                    color: colors.textPrimary)),
             onTap: () => _show(context, 'Wallpaper set successfully'),
           ),
           ListTile(
             leading: const Icon(Icons.lock_rounded,
                 color: AppColors.accentGold),
-            title: const Text('Lock Screen',
+            title: Text('Lock Screen',
                 style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 15,
-                    color: Colors.white)),
+                    color: colors.textPrimary)),
             onTap: () => _show(context, 'Wallpaper set successfully'),
           ),
           ListTile(
             leading: const Icon(Icons.phone_android_rounded,
                 color: AppColors.accentGold),
-            title: const Text('Both Screens',
+            title: Text('Both Screens',
                 style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 15,
-                    color: Colors.white)),
+                    color: colors.textPrimary)),
             onTap: () => _show(context, 'Wallpaper set successfully'),
           ),
           const SizedBox(height: 20),

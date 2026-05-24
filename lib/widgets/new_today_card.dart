@@ -17,6 +17,7 @@ class NewTodayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -24,7 +25,7 @@ class NewTodayCard extends StatelessWidget {
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.borderSubtle, width: 0.5),
+          border: Border.all(color: colors.borderSubtle, width: 0.5),
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -36,14 +37,17 @@ class NewTodayCard extends StatelessWidget {
               fit: BoxFit.cover,
               memCacheWidth: 400,
               placeholder: (_, __) => const ShimmerCard(height: 200),
-              errorWidget: (_, __, ___) => Container(
-                height: 200,
-                color: AppColors.bgCard,
-                child: const Icon(
-                  Icons.broken_image_rounded,
-                  color: AppColors.textTertiary,
-                ),
-              ),
+              errorWidget: (context, __, ___) {
+                final c = AppThemeColors.of(context);
+                return Container(
+                  height: 200,
+                  color: c.bgCard,
+                  child: Icon(
+                    Icons.broken_image_rounded,
+                    color: c.textTertiary,
+                  ),
+                );
+              },
             ),
             Positioned.fill(
               child: DecoratedBox(

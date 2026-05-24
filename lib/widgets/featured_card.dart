@@ -40,14 +40,17 @@ class FeaturedCard extends StatelessWidget {
               fit: BoxFit.cover,
               memCacheWidth: 1080,
               placeholder: (_, __) => ShimmerCard(height: 210),
-              errorWidget: (_, __, ___) => Container(
-                color: AppColors.bgCard,
-                child: const Icon(
-                  Icons.broken_image_rounded,
-                  color: AppColors.textTertiary,
-                  size: 40,
-                ),
-              ),
+              errorWidget: (context, __, ___) {
+                final colors = AppThemeColors.of(context);
+                return Container(
+                  color: colors.bgCard,
+                  child: Icon(
+                    Icons.broken_image_rounded,
+                    color: colors.textTertiary,
+                    size: 40,
+                  ),
+                );
+              },
             ),
             Positioned.fill(
               child: DecoratedBox(
