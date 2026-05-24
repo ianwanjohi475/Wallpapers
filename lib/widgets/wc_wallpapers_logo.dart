@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 /// Professional shield-based brand mark for WC Wallpapers app.
@@ -89,7 +90,6 @@ class _WCWallpapersLogoPainter extends CustomPainter {
       fontSizePx: 14 * s,
       fontFamily: 'Rajdhani',
       fontWeight: FontWeight.w700,
-      s: s,
     );
 
     // 6. Draw "WALLPAPERS" text below shield
@@ -100,7 +100,6 @@ class _WCWallpapersLogoPainter extends CustomPainter {
       fontSizePx: 7 * s,
       fontFamily: 'Inter',
       fontWeight: FontWeight.w600,
-      s: s,
     );
 
     // 7. Draw three accent dots at the very bottom
@@ -124,14 +123,14 @@ class _WCWallpapersLogoPainter extends CustomPainter {
     double radius,
     double s,
   ) {
-    // Create hexagon path (pointy top)
     final path = Path();
-    final angle = 2 * 3.14159265359 / 6;
+    const sides = 6;
+    final angle = 2 * math.pi / sides;
 
-    for (int i = 0; i < 6; i++) {
-      final theta = (i * angle) - 3.14159265359 / 2;
-      final x = center.dx + radius * Math.cos(theta);
-      final y = center.dy + radius * Math.sin(theta);
+    for (int i = 0; i < sides; i++) {
+      final theta = (i * angle) - math.pi / 2;
+      final x = center.dx + radius * math.cos(theta);
+      final y = center.dy + radius * math.sin(theta);
 
       if (i == 0) {
         path.moveTo(x, y);
@@ -141,7 +140,6 @@ class _WCWallpapersLogoPainter extends CustomPainter {
     }
     path.close();
 
-    // Fill with semi-transparent gradient
     final fillPaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topLeft,
@@ -153,7 +151,6 @@ class _WCWallpapersLogoPainter extends CustomPainter {
       ).createShader(path.getBounds());
     canvas.drawPath(path, fillPaint);
 
-    // Stroke with gold to orange gradient
     final strokePaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5 * s
@@ -178,18 +175,10 @@ class _WCWallpapersLogoPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    // Checkmark path
     final checkPath = Path();
-    final leftX = center.dx - radius * 0.4;
-    final leftY = center.dy + radius * 0.1;
-    final midX = center.dx - radius * 0.05;
-    final midY = center.dy + radius * 0.35;
-    final rightX = center.dx + radius * 0.45;
-    final rightY = center.dy - radius * 0.35;
-
-    checkPath.moveTo(leftX, leftY);
-    checkPath.lineTo(midX, midY);
-    checkPath.lineTo(rightX, rightY);
+    checkPath.moveTo(center.dx - radius * 0.4, center.dy + radius * 0.1);
+    checkPath.lineTo(center.dx - radius * 0.05, center.dy + radius * 0.35);
+    checkPath.lineTo(center.dx + radius * 0.45, center.dy - radius * 0.35);
 
     canvas.drawPath(checkPath, paint);
   }
@@ -197,11 +186,11 @@ class _WCWallpapersLogoPainter extends CustomPainter {
   void _drawText(
     Canvas canvas,
     String text,
-    Offset position,
-    {required double fontSizePx,
+    Offset position, {
+    required double fontSizePx,
     required String fontFamily,
     required FontWeight fontWeight,
-    required double s}) {
+  }) {
     final textPainter = TextPainter(
       text: TextSpan(
         text: text,
@@ -224,31 +213,4 @@ class _WCWallpapersLogoPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _WCWallpapersLogoPainter old) =>
       old.showBackground != showBackground;
-}
-
-class Math {
-  static double cos(double radians) => mathCos(radians);
-  static double sin(double radians) => mathSin(radians);
-}
-
-double mathCos(double radians) {
-  const pi = 3.14159265359;
-  final x = radians % (2 * pi);
-  final cosTable = [
-    1.0, 0.9988, 0.9951, 0.9888, 0.9781, 0.9626, 0.9415, 0.9135,
-    0.8776, 0.8335, 0.7809, 0.7193, 0.6494, 0.5713, 0.4855, 0.3936,
-    0.2962, 0.1951, 0.0920, -0.0136, -0.1205, -0.2272, -0.3327, -0.4350,
-    0.5328, -0.6245, -0.7087, -0.7835, -0.8480, -0.9015, -0.9428, -0.9709,
-    -0.9848, -0.9840, -0.9681, -0.9370, -0.8910, -0.8307, -0.7571, -0.6720,
-    -0.5769, -0.4740, -0.3657, -0.2545, -0.1434, -0.0355, 0.0728, 0.1790,
-    0.2817, 0.3795, 0.4710, 0.5556, 0.6320, 0.6994, 0.7569, 0.8035,
-    0.8387, 0.8618, 0.8721, 0.8689, 0.8521, 0.8213, 0.7766, 0.7177,
-    0.6456, 0.5607, 0.4643, 0.3576, 0.2424, 0.1205, -0.0059, -0.1325,
-  ];
-  final index = ((x * 180 / pi) / 2.25).toInt() % cosTable.length;
-  return cosTable[index.abs()];
-}
-
-double mathSin(double radians) {
-  return mathCos(radians - 3.14159265359 / 2);
 }
