@@ -116,24 +116,24 @@ class WcWallpapersApp extends StatelessWidget {
             fontFamily: 'Inter',
             fontWeight: FontWeight.w400,
             fontSize: 15,
-            color: isDark ? AppColors.textSecondary : const Color(0x99000000)),
+            color: isDark ? AppColors.textSecondary : const Color(0xDD000000)),
         bodyMedium: TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.w400,
             fontSize: 14,
-            color: isDark ? AppColors.textSecondary : const Color(0x99000000)),
+            color: isDark ? AppColors.textSecondary : const Color(0xDD000000)),
         bodySmall: TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.w400,
             fontSize: 12,
-            color: isDark ? AppColors.textSecondary : const Color(0x99000000)),
+            color: isDark ? AppColors.textSecondary : const Color(0xDD000000)),
         labelSmall: TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.w400,
             fontSize: 11,
             color: isDark
                 ? AppColors.textTertiary
-                : const Color(0x55000000)),
+                : const Color(0x99000000)),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {

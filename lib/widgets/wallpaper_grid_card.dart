@@ -183,17 +183,29 @@ class _WallpaperGridCardState extends State<WallpaperGridCard>
                 ),
                 Positioned(
                   bottom: 6,
-                  right: 8,
+                  right: 6,
                   child: GestureDetector(
                     onTap: () => _toggleLike(context),
                     child: ScaleTransition(
                       scale: _heartScale,
-                      child: Icon(
-                        isLiked
-                            ? Icons.favorite_rounded
-                            : Icons.favorite_border_rounded,
-                        color: isLiked ? Colors.red : Colors.white,
-                        size: 18,
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.42),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.22),
+                            width: 0.6,
+                          ),
+                        ),
+                        child: Icon(
+                          isLiked
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          color: isLiked ? Colors.red : Colors.white,
+                          size: 16,
+                        ),
                       ),
                     ),
                   ),

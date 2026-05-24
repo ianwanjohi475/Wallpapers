@@ -793,30 +793,34 @@ class _FeaturedCard extends StatelessWidget {
                 ),
               ),
               Positioned(
-                top: 8,
-                right: 8,
+                top: 10,
+                right: 10,
                 child: GestureDetector(
                   onTap: () {
                     HapticFeedback.lightImpact();
                     context.read<FavoritesProvider>().toggleLike(w.id);
                   },
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(20),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                       child: Container(
-                        width: 36,
-                        height: 36,
+                        width: 38,
+                        height: 38,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: Colors.black.withValues(alpha: 0.42),
                           shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.22),
+                            width: 0.8,
+                          ),
                         ),
                         child: Icon(
                           isLiked
                               ? Icons.favorite_rounded
                               : Icons.favorite_border_rounded,
                           color: isLiked ? Colors.red : Colors.white,
-                          size: 18,
+                          size: 19,
                         ),
                       ),
                     ),

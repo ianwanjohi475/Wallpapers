@@ -85,11 +85,11 @@ class FeaturedCard extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
+                    color: Colors.black.withValues(alpha: 0.42),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      width: 0.5,
+                      color: Colors.white.withValues(alpha: 0.22),
+                      width: 0.8,
                     ),
                   ),
                   child: Icon(

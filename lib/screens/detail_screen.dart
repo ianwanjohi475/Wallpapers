@@ -202,15 +202,16 @@ class _DetailScreenState extends State<DetailScreen>
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(19),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                   child: Container(
-                    width: 38,
-                    height: 38,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: Colors.black.withValues(alpha: 0.42),
                       shape: BoxShape.circle,
                       border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.12), width: 0.5),
+                          color: Colors.white.withValues(alpha: 0.22),
+                          width: 0.8),
                     ),
                     child: const Icon(Icons.arrow_back_ios_rounded,
                         color: Colors.white, size: 16),
@@ -227,17 +228,18 @@ class _DetailScreenState extends State<DetailScreen>
               child: ScaleTransition(
                 scale: _heartScale,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(21),
+                  borderRadius: BorderRadius.circular(22),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                     child: Container(
-                      width: 42,
-                      height: 42,
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: Colors.black.withValues(alpha: 0.42),
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.12), width: 0.5),
+                            color: Colors.white.withValues(alpha: 0.22),
+                            width: 0.8),
                       ),
                       child: Builder(
                         builder: (ctx) {
@@ -245,7 +247,7 @@ class _DetailScreenState extends State<DetailScreen>
                           return Icon(
                             liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                             color: liked ? Colors.red : Colors.white,
-                            size: 20,
+                            size: 22,
                           );
                         },
                       ),
