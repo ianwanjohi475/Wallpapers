@@ -50,6 +50,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     final size = MediaQuery.of(context).size;
     final safeTop = MediaQuery.of(context).padding.top;
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
@@ -59,7 +60,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     final isGuest = !auth.isSignedIn;
 
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: colors.bgPrimary,
       extendBody: true,
       body: AnimatedBuilder(
         animation: _orbCtrl,
@@ -67,13 +68,13 @@ class _FavoritesScreenState extends State<FavoritesScreen>
           return Stack(
             children: [
               Opacity(
-                opacity: 0.4,
+                opacity: colors.isDark ? 0.4 : 0.15,
                 child: CustomPaint(
                   size: size,
                   painter: OrbPainter(
                     t: _orbCtrl.value,
                     orbs: purpleOrbs,
-                    bgColor: AppColors.bgPrimary,
+                    bgColor: colors.bgPrimary,
                   ),
                 ),
               ),
@@ -85,7 +86,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                     child: Container(
-                      color: AppColors.bgPrimary.withValues(alpha: 0.8),
+                      color: colors.bgPrimary.withValues(alpha: 0.8),
                       padding: EdgeInsets.fromLTRB(24, safeTop + 16, 24, 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,10 +105,10 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                             children: [
                               Text(
                                 '${favProv.likedCount} wallpaper${favProv.likedCount == 1 ? "" : "s"} saved',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 13,
-                                  color: AppColors.textSecondary,
+                                  color: colors.textSecondary,
                                 ),
                               ),
                               if (auth.isSignedIn) ...[
@@ -116,8 +117,8 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                                   height: 4,
                                   margin: const EdgeInsets.symmetric(
                                       horizontal: 8),
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.textSecondary,
+                                  decoration: BoxDecoration(
+                                    color: colors.textSecondary,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -151,8 +152,10 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.07),
+                        color: colors.bgCard,
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: colors.borderSubtle, width: 0.5),
                       ),
                       child: _syncing
                           ? const Padding(
@@ -162,8 +165,8 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Icon(Icons.sync_rounded,
-                              color: Colors.white, size: 22),
+                          : Icon(Icons.sync_rounded,
+                              color: colors.textPrimary, size: 22),
                     ),
                   ),
                 ),
@@ -175,26 +178,26 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.favorite_border_rounded,
-                                  color: AppColors.textTertiary, size: 64),
+                              Icon(Icons.favorite_border_rounded,
+                                  color: colors.textTertiary, size: 64),
                               const SizedBox(height: 16),
-                              const Text(
+                              Text(
                                 'No favorites yet',
                                 style: TextStyle(
                                   fontFamily: 'Rajdhani',
                                   fontWeight: FontWeight.w700,
                                   fontSize: 22,
-                                  color: Colors.white,
+                                  color: colors.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              const Text(
+                              Text(
                                 'Tap the heart on any wallpaper\nto save it here',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 14,
-                                  color: AppColors.textSecondary,
+                                  color: colors.textSecondary,
                                 ),
                               ),
                               if (isGuest) ...[

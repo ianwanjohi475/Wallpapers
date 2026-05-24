@@ -52,6 +52,7 @@ class NotificationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     final safeTop = MediaQuery.of(context).padding.top;
 
     return Consumer<NotificationsProvider>(
@@ -60,17 +61,18 @@ class NotificationsScreen extends StatelessWidget {
         final unreadCount = notifProvider.unreadCount;
 
         return Scaffold(
-          backgroundColor: AppColors.bgPrimary,
+          backgroundColor: colors.bgPrimary,
           extendBody: true,
           body: Column(
             children: [
               // Header
               Container(
                 padding: EdgeInsets.fromLTRB(20, safeTop + 16, 20, 16),
-                decoration: const BoxDecoration(
-                  color: AppColors.bgPrimary,
+                decoration: BoxDecoration(
+                  color: colors.bgPrimary,
                   border: Border(
-                    bottom: BorderSide(color: AppColors.borderSubtle, width: 0.5),
+                    bottom:
+                        BorderSide(color: colors.borderSubtle, width: 0.5),
                   ),
                 ),
                 child: Row(
@@ -80,18 +82,18 @@ class NotificationsScreen extends StatelessWidget {
                         HapticFeedback.lightImpact();
                         Navigator.pop(context);
                       },
-                      child: const Icon(Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white, size: 20),
+                      child: Icon(Icons.arrow_back_ios_new_rounded,
+                          color: colors.textPrimary, size: 20),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'NOTIFICATIONS',
                         style: TextStyle(
                           fontFamily: 'Rajdhani',
                           fontWeight: FontWeight.w700,
                           fontSize: 20,
-                          color: Colors.white,
+                          color: colors.textPrimary,
                         ),
                       ),
                     ),
@@ -157,24 +159,24 @@ class NotificationsScreen extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.notifications_off_rounded,
-                                color: AppColors.textTertiary, size: 56),
+                                color: colors.textTertiary, size: 56),
                             const SizedBox(height: 16),
-                            const Text(
+                            Text(
                               'No notifications yet',
                               style: TextStyle(
                                 fontFamily: 'Rajdhani',
                                 fontWeight: FontWeight.w700,
                                 fontSize: 20,
-                                color: Colors.white,
+                                color: colors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'We\'ll let you know when new packs drop',
+                            Text(
+                              "We'll let you know when new packs drop",
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 14,
-                                color: AppColors.textSecondary,
+                                color: colors.textSecondary,
                               ),
                             ),
                           ],
@@ -183,9 +185,9 @@ class NotificationsScreen extends StatelessWidget {
                     : ListView.separated(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         itemCount: notifications.length,
-                        separatorBuilder: (_, __) => const Divider(
+                        separatorBuilder: (_, __) => Divider(
                           height: 0,
-                          color: AppColors.borderSubtle,
+                          color: colors.borderSubtle,
                           indent: 72,
                         ),
                         itemBuilder: (context, i) {
@@ -233,6 +235,7 @@ class _NotifTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Dismissible(
       key: ValueKey(notification.id),
       direction: DismissDirection.endToStart,
@@ -249,7 +252,7 @@ class _NotifTile extends StatelessWidget {
         child: Container(
           color: notification.isRead
               ? Colors.transparent
-              : AppColors.accentGold.withValues(alpha: 0.04),
+              : AppColors.accentGold.withValues(alpha: 0.06),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,7 +282,7 @@ class _NotifTile extends StatelessWidget {
                                   ? FontWeight.w400
                                   : FontWeight.w600,
                               fontSize: 14,
-                              color: Colors.white,
+                              color: colors.textPrimary,
                             ),
                           ),
                         ),
@@ -297,19 +300,19 @@ class _NotifTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       notification.message,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       timeAgo,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 11,
-                        color: AppColors.textTertiary,
+                        color: colors.textTertiary,
                       ),
                     ),
                   ],

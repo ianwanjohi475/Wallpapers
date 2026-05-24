@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/app_colors.dart';
 import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
@@ -50,35 +51,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _confirmLogout() async {
     HapticFeedback.lightImpact();
+    final colors = AppThemeColors.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.bgElevated,
+        backgroundColor: colors.bgElevated,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Log out?',
           style: TextStyle(
             fontFamily: 'Rajdhani',
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: colors.textPrimary,
           ),
         ),
-        content: const Text(
+        content: Text(
           'You can sign back in anytime. Your favourites stay synced.',
-          style:
-              TextStyle(fontFamily: 'Inter', color: AppColors.textSecondary),
+          style: TextStyle(
+            fontFamily: 'Inter',
+            color: colors.textSecondary,
+            height: 1.5,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel',
-                style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Cancel',
+                style: TextStyle(color: colors.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Log Out',
-                style: TextStyle(color: AppColors.accentGold)),
+                style: TextStyle(
+                  color: AppColors.accentGold,
+                  fontWeight: FontWeight.w600,
+                )),
           ),
         ],
       ),
@@ -98,6 +106,78 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _confirmResetData() async {
+    HapticFeedback.mediumImpact();
+    final colors = AppThemeColors.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.bgElevated,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded,
+                color: Colors.red.withValues(alpha: 0.85), size: 22),
+            const SizedBox(width: 8),
+            Text(
+              'Reset app data?',
+              style: TextStyle(
+                fontFamily: 'Rajdhani',
+                fontWeight: FontWeight.w700,
+                color: colors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'This will clear your local favourites cache, search history, and saved settings. '
+          'Your cloud-synced favourites stay safe. Continue?',
+          style: TextStyle(
+            fontFamily: 'Inter',
+            color: colors.textSecondary,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: colors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Reset',
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final favs = context.read<FavoritesProvider>();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    await favs.clearLocal();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'App data has been reset.',
+          style: TextStyle(fontFamily: 'Inter'),
+        ),
+        backgroundColor: colors.bgElevated,
+      ),
+    );
+  }
+
   void _push(Widget page) {
     HapticFeedback.lightImpact();
     Navigator.push(
@@ -113,6 +193,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
     final auth = context.watch<AuthProvider>();
     final favCount = context.watch<FavoritesProvider>().likedCount;
@@ -123,7 +204,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isPremium = profile?.isPremium ?? false;
 
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: colors.bgPrimary,
       extendBody: true,
       body: SafeArea(
         top: true,
@@ -137,21 +218,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
                 child: Row(
                   children: [
-                    const Text(
-                      'SETTINGS',
+                    Text(
+                      'PROFILE',
                       style: TextStyle(
                         fontFamily: 'Rajdhani',
                         fontWeight: FontWeight.w700,
                         fontSize: 24,
-                        color: Colors.white,
+                        color: colors.textPrimary,
                       ),
                     ),
                     const Spacer(),
-                    IconButton(
-                      onPressed: () => HapticFeedback.lightImpact(),
-                      icon: const Icon(Icons.close_rounded,
-                          color: Colors.white, size: 24),
-                    ),
                   ],
                 ),
               ),
@@ -160,10 +236,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 margin: const EdgeInsets.fromLTRB(24, 20, 24, 24),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.bgCard,
+                  color: colors.bgCard,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                      color: AppColors.borderSubtle, width: 1),
+                      color: colors.borderSubtle, width: 1),
                 ),
                 child: Row(
                   children: [
@@ -184,9 +260,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   imageUrl: profile!.avatarUrl!,
                                   fit: BoxFit.cover,
                                   errorWidget: (_, __, ___) =>
-                                      _initialsBadge(initials),
+                                      _initialsBadge(initials, colors),
                                 )
-                              : _initialsBadge(initials),
+                              : _initialsBadge(initials, colors),
                         ),
                       ),
                     ),
@@ -201,11 +277,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 child: Text(
                                   displayName,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontWeight: FontWeight.w600,
                                     fontSize: 16,
-                                    color: Colors.white,
+                                    color: colors.textPrimary,
                                   ),
                                 ),
                               ),
@@ -278,13 +354,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onTap: () => _push(const DownloadsScreen()),
                         child: _StatCard(
                             value: (_downloadCount ?? 0).toString(),
-                            label: 'Downloads'),
+                            label: 'Downloads',
+                            colors: colors),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _StatCard(
-                          value: favCount.toString(), label: 'Favorites'),
+                          value: favCount.toString(),
+                          label: 'Favorites',
+                          colors: colors),
                     ),
                   ],
                 ),
@@ -307,17 +386,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   margin: const EdgeInsets.fromLTRB(24, 0, 24, 8),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.bgCard,
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.accentGold.withValues(alpha: 0.12),
+                        AppColors.accentOrange.withValues(alpha: 0.08),
+                      ],
+                    ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                        color: AppColors.borderGold, width: 0.5),
+                        color: AppColors.borderGold, width: 0.8),
                   ),
                   child: Row(
                     children: [
                       const Icon(Icons.workspace_premium_rounded,
                           color: AppColors.accentGold, size: 20),
                       const SizedBox(width: 12),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -327,7 +411,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 fontFamily: 'Rajdhani',
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
-                                color: Colors.white,
+                                color: colors.textPrimary,
                               ),
                             ),
                             Text(
@@ -335,7 +419,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 12,
-                                color: AppColors.textSecondary,
+                                color: colors.textSecondary,
                               ),
                             ),
                           ],
@@ -353,7 +437,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 return _SettingsTile(
                   icon: Icons.dark_mode_rounded,
                   label: 'Theme Mode',
-                  subtitle: themeProv.label,
+                  subtitle: themeProv.label == 'System'
+                      ? 'System (matches device)'
+                      : themeProv.label,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -376,7 +462,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           decoration: BoxDecoration(
                             color: selected
                                 ? AppColors.accentGold
-                                : AppColors.bgElevated,
+                                : colors.bgElevated,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -384,9 +470,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 11,
+                              fontWeight: selected
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
                               color: selected
                                   ? AppColors.bgPrimary
-                                  : AppColors.textSecondary,
+                                  : colors.textSecondary,
                             ),
                           ),
                         ),
@@ -425,8 +514,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.high_quality_rounded,
                 label: 'Image Quality',
                 subtitle: '4K Ultra HD',
-                trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                    color: AppColors.textTertiary, size: 13),
+                trailing: Icon(Icons.arrow_forward_ios_rounded,
+                    color: colors.textTertiary, size: 13),
               ),
               _SettingsTile(
                 icon: Icons.storage_rounded,
@@ -461,8 +550,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   );
                 },
-                trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                    color: AppColors.textTertiary, size: 13),
+                trailing: Icon(Icons.arrow_forward_ios_rounded,
+                    color: colors.textTertiary, size: 13),
               ),
               _SettingsTile(
                 icon: Icons.share_rounded,
@@ -474,36 +563,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     'wallpapers in 4K. Download it now!',
                   );
                 },
-                trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                    color: AppColors.textTertiary, size: 13),
+                trailing: Icon(Icons.arrow_forward_ios_rounded,
+                    color: colors.textTertiary, size: 13),
               ),
               _SettingsTile(
                 icon: Icons.help_outline_rounded,
                 label: 'Help & Support',
                 onTap: () => _push(const HelpScreen()),
-                trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                    color: AppColors.textTertiary, size: 13),
+                trailing: Icon(Icons.arrow_forward_ios_rounded,
+                    color: colors.textTertiary, size: 13),
               ),
               _SettingsTile(
                 icon: Icons.info_outline_rounded,
                 label: 'About',
                 onTap: () => _push(const AboutScreen()),
-                trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                    color: AppColors.textTertiary, size: 13),
+                trailing: Icon(Icons.arrow_forward_ios_rounded,
+                    color: colors.textTertiary, size: 13),
               ),
               _SettingsTile(
                 icon: Icons.security_rounded,
                 label: 'Privacy Policy',
                 onTap: () => _push(LegalScreen.privacy()),
-                trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                    color: AppColors.textTertiary, size: 13),
+                trailing: Icon(Icons.arrow_forward_ios_rounded,
+                    color: colors.textTertiary, size: 13),
               ),
               _SettingsTile(
                 icon: Icons.description_outlined,
                 label: 'Terms of Service',
                 onTap: () => _push(LegalScreen.terms()),
-                trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                    color: AppColors.textTertiary, size: 13),
+                trailing: Icon(Icons.arrow_forward_ios_rounded,
+                    color: colors.textTertiary, size: 13),
               ),
               _SectionHeader('ACCOUNT'),
               if (auth.isSignedIn)
@@ -540,23 +629,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _SettingsTile(
                 icon: Icons.delete_forever_rounded,
                 label: 'Reset App Data',
-                subtitle: 'Irreversible action',
-                iconColor: Colors.red.withValues(alpha: 0.8),
-                labelColor: Colors.red.withValues(alpha: 0.8),
-                trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                    color: AppColors.textTertiary, size: 13),
+                subtitle: 'Clears favourites, history, settings',
+                iconColor: Colors.red.withValues(alpha: 0.85),
+                labelColor: Colors.red.withValues(alpha: 0.85),
+                onTap: _confirmResetData,
+                trailing: Icon(Icons.arrow_forward_ios_rounded,
+                    color: colors.textTertiary, size: 13),
               ),
               const SizedBox(height: 40),
               Column(
                 children: [
-                  const Center(
+                  Center(
                     child: Text(
                       'WC WALLPAPERS 2026 · v1.0.0',
                       style: TextStyle(
                         fontFamily: 'Rajdhani',
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                   ),
@@ -567,13 +657,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Icon(Icons.favorite_rounded,
                           color: Colors.red.withValues(alpha: 0.7), size: 11),
                       const SizedBox(width: 4),
-                      const Text(
+                      Text(
                         'Made for football fans',
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w300,
                           fontSize: 11,
-                          color: AppColors.textTertiary,
+                          color: colors.textTertiary,
                         ),
                       ),
                     ],
@@ -589,9 +679,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
-Widget _initialsBadge(String initials) {
+Widget _initialsBadge(String initials, AppThemeColors colors) {
   return Container(
-    color: AppColors.bgElevated,
+    color: colors.bgElevated,
     child: Center(
       child: Text(
         initials,
@@ -609,37 +699,39 @@ Widget _initialsBadge(String initials) {
 class _StatCard extends StatelessWidget {
   final String value;
   final String label;
-  const _StatCard({required this.value, required this.label});
+  final AppThemeColors colors;
+  const _StatCard(
+      {required this.value, required this.label, required this.colors});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.bgCard,
+        color: colors.bgCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderSubtle, width: 0.5),
+        border: Border.all(color: colors.borderSubtle, width: 0.5),
       ),
       child: Column(
         children: [
           Text(
             value,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Rajdhani',
               fontWeight: FontWeight.w700,
               fontSize: 20,
-              color: Colors.white,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
         ],
@@ -662,7 +754,7 @@ class _SectionHeader extends StatelessWidget {
           fontFamily: 'Rajdhani',
           fontWeight: FontWeight.w600,
           fontSize: 11,
-          color: AppColors.accentGold.withValues(alpha: 0.7),
+          color: AppColors.accentGold.withValues(alpha: 0.8),
           letterSpacing: 1.2,
         ),
       ),
@@ -691,6 +783,7 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Column(
       children: [
         GestureDetector(
@@ -704,13 +797,15 @@ class _SettingsTile extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: colors.isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.04),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     icon,
-                    color:
-                        iconColor ?? AppColors.accentGold.withValues(alpha: 0.85),
+                    color: iconColor ??
+                        AppColors.accentGold.withValues(alpha: 0.9),
                     size: 18,
                   ),
                 ),
@@ -725,17 +820,17 @@ class _SettingsTile extends StatelessWidget {
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w400,
                           fontSize: 14,
-                          color: labelColor ?? Colors.white,
+                          color: labelColor ?? colors.textPrimary,
                         ),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 2),
                         Text(
                           subtitle!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            color: colors.textSecondary,
                           ),
                         ),
                       ],
@@ -747,12 +842,12 @@ class _SettingsTile extends StatelessWidget {
             ),
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Divider(
             height: 0.5,
             thickness: 0.5,
-            color: AppColors.borderSubtle,
+            color: colors.borderSubtle,
           ),
         ),
       ],

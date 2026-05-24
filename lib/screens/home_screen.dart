@@ -8,6 +8,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../core/app_colors.dart';
 import '../models/wallpaper_model.dart';
 import '../providers/favorites_provider.dart';
+import '../providers/notifications_provider.dart';
 import '../services/wallpaper_service.dart';
 import '../widgets/ad_banner.dart';
 import '../widgets/wc_wallpapers_logo.dart';
@@ -101,10 +102,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
 
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: colors.bgPrimary,
       extendBody: true,
       body: FutureBuilder<_HomeData>(
         future: _data,
@@ -140,11 +142,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       snap: true,
                       backgroundColor: Colors.transparent,
                       surfaceTintColor: Colors.transparent,
-                      title: Row(
+                      title: const Row(
                         children: [
                           WCWallpapersLogo(size: 36),
-                          const SizedBox(width: 10),
-                          const Text(
+                          SizedBox(width: 10),
+                          Text(
                             'WALLPAPERS',
                             style: TextStyle(
                               fontFamily: 'Rajdhani',
@@ -172,45 +174,53 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           },
-                          icon: const Icon(Icons.search_rounded,
-                              color: Colors.white, size: 22),
+                          icon: Icon(Icons.search_rounded,
+                              color: colors.textPrimary, size: 22),
                         ),
-                        Stack(
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                HapticFeedback.lightImpact();
-                                Navigator.push(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (_, __, ___) =>
-                                        const NotificationsScreen(),
-                                    transitionsBuilder: (_, anim, __, child) =>
-                                        FadeTransition(
-                                            opacity: anim, child: child),
-                                    transitionDuration:
-                                        const Duration(milliseconds: 300),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.notifications_rounded,
-                                  color: Colors.white, size: 22),
-                            ),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: AppColors.bgPrimary, width: 1.5),
+                        Consumer<NotificationsProvider>(
+                          builder: (context, notif, _) {
+                            return Stack(
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    HapticFeedback.lightImpact();
+                                    Navigator.push(
+                                      context,
+                                      PageRouteBuilder(
+                                        pageBuilder: (_, __, ___) =>
+                                            const NotificationsScreen(),
+                                        transitionsBuilder:
+                                            (_, anim, __, child) =>
+                                                FadeTransition(
+                                                    opacity: anim,
+                                                    child: child),
+                                        transitionDuration: const Duration(
+                                            milliseconds: 300),
+                                      ),
+                                    );
+                                  },
+                                  icon: Icon(Icons.notifications_rounded,
+                                      color: colors.textPrimary, size: 22),
                                 ),
-                              ),
-                            ),
-                          ],
+                                if (notif.unreadCount > 0)
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.accentOrange,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: colors.bgPrimary,
+                                            width: 1.5),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                         const SizedBox(width: 8),
                       ],
@@ -274,13 +284,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
                             child: Row(
                               children: [
-                                const Text(
+                                Text(
                                   'Browse by Category',
                                   style: TextStyle(
                                     fontFamily: 'Rajdhani',
                                     fontWeight: FontWeight.w700,
                                     fontSize: 16,
-                                    color: Colors.white,
+                                    color: colors.textPrimary,
                                   ),
                                 ),
                                 const Spacer(),
@@ -351,12 +361,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                     decoration: BoxDecoration(
                                       color: active
                                           ? AppColors.accentGold
-                                          : AppColors.bgGlass,
+                                          : colors.bgCard,
                                       borderRadius: BorderRadius.circular(20),
                                       border: active
                                           ? null
                                           : Border.all(
-                                              color: AppColors.borderSubtle,
+                                              color: colors.borderSubtle,
                                               width: 0.5),
                                     ),
                                     child: Text(
@@ -367,7 +377,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         fontWeight: FontWeight.w500,
                                         color: active
                                             ? AppColors.bgPrimary
-                                            : AppColors.textSecondary,
+                                            : colors.textSecondary,
                                       ),
                                     ),
                                   ),
@@ -380,13 +390,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                             child: Row(
                               children: [
-                                const Text(
+                                Text(
                                   'New Today',
                                   style: TextStyle(
                                     fontFamily: 'Rajdhani',
                                     fontWeight: FontWeight.w700,
                                     fontSize: 16,
-                                    color: Colors.white,
+                                    color: colors.textPrimary,
                                   ),
                                 ),
                                 const Spacer(),
@@ -420,15 +430,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           if (data.newToday.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 12),
                               child: Text(
                                 'No new wallpapers yet — check back tomorrow.',
                                 style: TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 13,
-                                  color: AppColors.textTertiary,
+                                  color: colors.textTertiary,
                                 ),
                               ),
                             )
@@ -457,13 +467,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                 const Icon(Icons.emoji_events_rounded,
                                     color: AppColors.accentGold, size: 16),
                                 const SizedBox(width: 6),
-                                const Text(
+                                Text(
                                   'Most Downloaded',
                                   style: TextStyle(
                                     fontFamily: 'Rajdhani',
                                     fontWeight: FontWeight.w700,
                                     fontSize: 16,
-                                    color: Colors.white,
+                                    color: colors.textPrimary,
                                   ),
                                 ),
                                 const Spacer(),
@@ -593,13 +603,14 @@ class _HomeSkeleton extends StatelessWidget {
   const _HomeSkeleton();
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return ListView(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 56),
       children: [
         const SizedBox(height: 12),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20),
-          child: ShimmerCard(height: 210),
+          child: ShimmerCard(height: 210, borderRadius: 20),
         ),
         const SizedBox(height: 24),
         SizedBox(
@@ -612,7 +623,7 @@ class _HomeSkeleton extends StatelessWidget {
             itemBuilder: (_, __) => Container(
               width: 80,
               decoration: BoxDecoration(
-                color: AppColors.bgCard,
+                color: colors.shimmerBase,
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
@@ -629,6 +640,17 @@ class _HomeSkeleton extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 8),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(child: ShimmerCard(height: 220)),
+              SizedBox(width: 8),
+              Expanded(child: ShimmerCard(height: 180)),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -641,18 +663,19 @@ class _HomeError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.cloud_off_rounded,
-              color: AppColors.textTertiary, size: 48),
+          Icon(Icons.cloud_off_rounded,
+              color: colors.textTertiary, size: 48),
           const SizedBox(height: 12),
           Text(message,
-              style: const TextStyle(
+              style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 14,
-                  color: AppColors.textSecondary)),
+                  color: colors.textSecondary)),
           const SizedBox(height: 16),
           GestureDetector(
             onTap: onRetry,

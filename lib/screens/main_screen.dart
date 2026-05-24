@@ -36,13 +36,10 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // padding.bottom is non-zero only on devices that still report a
-    // gesture inset inside the app frame (older Android edge-to-edge,
-    // iOS home indicator). On modern Android with a solid system nav
-    // it's 0 because the bar lives in its own frame.
+    final colors = AppThemeColors.of(context);
     final bottomInset = MediaQuery.of(context).padding.bottom;
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: colors.bgPrimary,
       extendBody: true,
       body: Stack(
         children: [
@@ -59,11 +56,13 @@ class _MainScreenState extends State<MainScreen> {
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: Container(
                   height: 64 + bottomInset,
-                  decoration: const BoxDecoration(
-                    color: Color(0xEB08080F),
+                  decoration: BoxDecoration(
+                    color: colors.isDark
+                        ? colors.bgPrimary.withValues(alpha: 0.92)
+                        : colors.bgPrimary.withValues(alpha: 0.96),
                     border: Border(
                       top: BorderSide(
-                        color: Color(0x0FFFFFFF),
+                        color: colors.borderSubtle,
                         width: 0.5,
                       ),
                     ),

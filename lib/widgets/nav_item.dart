@@ -18,6 +18,7 @@ class NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
@@ -35,7 +36,7 @@ class NavItem extends StatelessWidget {
               child: Icon(
                 icon,
                 size: 24,
-                color: selected ? AppColors.accentGold : AppColors.textTertiary,
+                color: selected ? AppColors.accentGold : colors.textTertiary,
               ),
             ),
             const SizedBox(height: 3),
@@ -45,7 +46,7 @@ class NavItem extends StatelessWidget {
                 fontFamily: 'Inter',
                 fontSize: 10,
                 fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
-                color: selected ? AppColors.accentGold : AppColors.textTertiary,
+                color: selected ? AppColors.accentGold : colors.textTertiary,
               ),
             ),
             const SizedBox(height: 3),

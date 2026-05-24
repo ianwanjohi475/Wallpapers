@@ -63,8 +63,8 @@ class AppThemeColors {
     textSecondary: Color(0x8CFFFFFF),
     textTertiary: Color(0x40FFFFFF),
     borderSubtle: Color(0x0FFFFFFF),
-    shimmerBase: Color(0xFF0F0F1A),
-    shimmerHighlight: Color(0xFF1C1C2E),
+    shimmerBase: Color(0xFF141428),
+    shimmerHighlight: Color(0xFF2B2B50),
     isDark: true,
   );
 

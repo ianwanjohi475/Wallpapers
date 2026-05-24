@@ -49,11 +49,12 @@ class _BrowseScreenState extends State<BrowseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     final bottomPadding = MediaQuery.of(context).padding.bottom + 64;
     final pad = Responsive.pagePadding(context);
 
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: colors.bgPrimary,
       extendBody: true,
       body: FutureBuilder<List<WallpaperModel>>(
         future: _items,
@@ -65,28 +66,26 @@ class _BrowseScreenState extends State<BrowseScreen> {
             slivers: [
               SliverAppBar(
                 pinned: true,
-                backgroundColor: AppColors.bgPrimary,
+                backgroundColor: colors.bgPrimary,
                 surfaceTintColor: Colors.transparent,
                 title: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'BROWSE GALLERY',
                       style: TextStyle(
                         fontFamily: 'Rajdhani',
                         fontWeight: FontWeight.w700,
                         fontSize: 20,
-                        color: Colors.white,
+                        color: colors.textPrimary,
                       ),
                     ),
                     Text(
-                      loading
-                          ? 'Loading...'
-                          : '${items.length} Wallpapers',
-                      style: const TextStyle(
+                      loading ? 'Loading...' : '${items.length} Wallpapers',
+                      style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],
@@ -107,10 +106,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
                       height: 40,
                       margin: const EdgeInsets.only(right: 16),
                       decoration: BoxDecoration(
-                        color: AppColors.bgCard,
+                        color: colors.bgCard,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: AppColors.borderSubtle, width: 0.5),
+                            color: colors.borderSubtle, width: 0.5),
                       ),
                       child: const Icon(Icons.tune_rounded,
                           color: AppColors.accentGold, size: 20),
@@ -137,12 +136,12 @@ class _BrowseScreenState extends State<BrowseScreen> {
                             decoration: BoxDecoration(
                               color: active
                                   ? AppColors.accentGold
-                                  : AppColors.bgGlass,
+                                  : colors.bgCard,
                               borderRadius: BorderRadius.circular(20),
                               border: active
                                   ? null
                                   : Border.all(
-                                      color: AppColors.borderSubtle,
+                                      color: colors.borderSubtle,
                                       width: 0.5),
                             ),
                             child: Text(
@@ -153,7 +152,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                                 fontWeight: FontWeight.w500,
                                 color: active
                                     ? AppColors.bgPrimary
-                                    : AppColors.textSecondary,
+                                    : colors.textSecondary,
                               ),
                             ),
                           ),
@@ -191,15 +190,15 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Icon(Icons.image_search_rounded,
-                            color: AppColors.textTertiary, size: 48),
-                        SizedBox(height: 12),
+                            color: colors.textTertiary, size: 48),
+                        const SizedBox(height: 12),
                         Text(
                           'No wallpapers in this category',
                           style: TextStyle(
                             fontFamily: 'Inter',
-                            color: AppColors.textSecondary,
+                            color: colors.textSecondary,
                             fontSize: 14,
                           ),
                         ),
