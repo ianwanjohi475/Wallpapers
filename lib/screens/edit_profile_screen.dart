@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
 import '../core/responsive.dart';
@@ -19,7 +20,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _emailCtrl = TextEditingController();
   final _bioCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final _picker = ImagePicker();
   bool _saving = false;
+  bool _uploadingAvatar = false;
   bool _loaded = false;
   String? _avatarUrl;
   String _initials = 'WC';
@@ -50,6 +53,107 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickAvatar() async {
+    HapticFeedback.lightImpact();
+    final colors = AppThemeColors.of(context);
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: colors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colors.textTertiary,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: Icon(Icons.photo_camera_rounded, color: colors.accent),
+              title: Text(
+                'Take a photo',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 15,
+                  color: colors.textPrimary,
+                ),
+              ),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: Icon(Icons.photo_library_rounded, color: colors.accent),
+              title: Text(
+                'Choose from gallery',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 15,
+                  color: colors.textPrimary,
+                ),
+              ),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+
+    try {
+      final picked = await _picker.pickImage(
+        source: source,
+        imageQuality: 85,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
+      if (picked == null) return;
+      if (!mounted) return;
+      setState(() => _uploadingAvatar = true);
+
+      final bytes = await picked.readAsBytes();
+      final url = await ProfileService.instance.uploadAvatar(bytes);
+      await ProfileService.instance.updateMine(avatarUrl: url);
+      if (!mounted) return;
+      await context.read<AuthProvider>().refreshProfile();
+      if (!mounted) return;
+      setState(() {
+        _avatarUrl = url;
+        _uploadingAvatar = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle_rounded,
+                  color: AppColors.accentGreen, size: 18),
+              SizedBox(width: 8),
+              Text('Profile photo updated',
+                  style: TextStyle(fontFamily: 'Inter', fontSize: 14)),
+            ],
+          ),
+          backgroundColor: AppThemeColors.of(context).bgCard,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _uploadingAvatar = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not upload photo: ${e.toString()}'),
+          backgroundColor: AppThemeColors.of(context).bgCard,
+        ),
+      );
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     HapticFeedback.lightImpact();
@@ -65,8 +169,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (!mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
+        SnackBar(
+          content: const Row(
             children: [
               Icon(Icons.check_circle_rounded,
                   color: AppColors.accentGreen, size: 18),
@@ -75,7 +179,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   style: TextStyle(fontFamily: 'Inter', fontSize: 14)),
             ],
           ),
-          backgroundColor: AppColors.bgCard,
+          backgroundColor: AppThemeColors.of(context).bgCard,
         ),
       );
     } catch (e) {
@@ -83,7 +187,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Save failed: ${e.toString()}'),
-          backgroundColor: AppColors.bgCard,
+          backgroundColor: AppThemeColors.of(context).bgCard,
         ),
       );
     } finally {
@@ -93,21 +197,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     final safeTop = MediaQuery.of(context).padding.top;
     final maxW = Responsive.contentMaxWidth(context);
 
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: colors.bgPrimary,
       extendBody: true,
       resizeToAvoidBottomInset: true,
       body: Column(
         children: [
           Container(
             padding: EdgeInsets.fromLTRB(20, safeTop + 16, 20, 16),
-            decoration: const BoxDecoration(
-              color: AppColors.bgPrimary,
+            decoration: BoxDecoration(
+              color: colors.bgPrimary,
               border: Border(
-                bottom: BorderSide(color: AppColors.borderSubtle, width: 0.5),
+                bottom:
+                    BorderSide(color: colors.borderSubtle, width: 0.5),
               ),
             ),
             child: Row(
@@ -117,17 +223,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     HapticFeedback.lightImpact();
                     Navigator.pop(context);
                   },
-                  child: const Icon(Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white, size: 20),
+                  child: Icon(Icons.arrow_back_ios_new_rounded,
+                      color: colors.textPrimary, size: 20),
                 ),
                 const SizedBox(width: 16),
-                const Text(
+                Text(
                   'EDIT PROFILE',
                   style: TextStyle(
                     fontFamily: 'Rajdhani',
                     fontWeight: FontWeight.w700,
                     fontSize: 20,
-                    color: Colors.white,
+                    color: colors.textPrimary,
                   ),
                 ),
               ],
@@ -135,9 +241,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           Expanded(
             child: !_loaded
-                ? const Center(
-                    child: CircularProgressIndicator(
-                        color: AppColors.accentGold))
+                ? Center(
+                    child: CircularProgressIndicator(color: colors.accent))
                 : Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(maxWidth: maxW),
@@ -157,63 +262,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       height: 96,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: AppColors.bgElevated,
+                                        color: colors.bgElevated,
                                         border: Border.all(
-                                            color: AppColors.accentGold,
-                                            width: 2),
+                                            color: colors.accent, width: 2),
                                       ),
                                       child: ClipOval(
-                                        child: _avatarUrl != null
-                                            ? CachedNetworkImage(
-                                                imageUrl: _avatarUrl!,
-                                                fit: BoxFit.cover,
-                                                errorWidget: (_, __, ___) =>
-                                                    Center(
-                                                      child: Text(
-                                                        _initials,
-                                                        style: const TextStyle(
-                                                          fontFamily:
-                                                              'Rajdhani',
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          fontSize: 34,
-                                                          color: AppColors
-                                                              .accentGold,
-                                                        ),
-                                                      ),
-                                                    ),
-                                              )
-                                            : Center(
-                                                child: Text(
-                                                  _initials,
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Rajdhani',
-                                                    fontWeight:
-                                                        FontWeight.w700,
-                                                    fontSize: 34,
-                                                    color:
-                                                        AppColors.accentGold,
+                                        child: _uploadingAvatar
+                                            ? Center(
+                                                child: SizedBox(
+                                                  width: 28,
+                                                  height: 28,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    color: colors.accent,
+                                                    strokeWidth: 2.5,
                                                   ),
                                                 ),
-                                              ),
+                                              )
+                                            : (_avatarUrl != null
+                                                ? CachedNetworkImage(
+                                                    imageUrl: _avatarUrl!,
+                                                    fit: BoxFit.cover,
+                                                    errorWidget:
+                                                        (_, __, ___) =>
+                                                            _initialsFallback(
+                                                                colors),
+                                                  )
+                                                : _initialsFallback(colors)),
                                       ),
                                     ),
                                     Positioned(
                                       right: 0,
                                       bottom: 0,
                                       child: GestureDetector(
-                                        onTap: () {
-                                          HapticFeedback.lightImpact();
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                  'Photo picker coming soon'),
-                                              backgroundColor:
-                                                  AppColors.bgCard,
-                                            ),
-                                          );
-                                        },
+                                        onTap: _uploadingAvatar
+                                            ? null
+                                            : _pickAvatar,
                                         child: Container(
                                           width: 32,
                                           height: 32,
@@ -221,7 +305,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             gradient: AppColors.goldGradient,
                                             shape: BoxShape.circle,
                                             border: Border.all(
-                                                color: AppColors.bgPrimary,
+                                                color: colors.bgPrimary,
                                                 width: 2),
                                           ),
                                           child: const Icon(
@@ -235,7 +319,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 ),
                               ),
                               const SizedBox(height: 32),
-                              _label('Full Name'),
+                              _label(colors, 'Full Name'),
                               const SizedBox(height: 8),
                               TextFormField(
                                 controller: _nameCtrl,
@@ -243,12 +327,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     (v == null || v.trim().isEmpty)
                                         ? 'Enter your name'
                                         : null,
-                                style: _fieldStyle,
-                                decoration: _decoration(
+                                style: _fieldStyle(colors),
+                                decoration: _decoration(colors,
                                     'Your name', Icons.person_rounded),
                               ),
                               const SizedBox(height: 20),
-                              _label('Email Address'),
+                              _label(colors, 'Email Address'),
                               const SizedBox(height: 8),
                               TextFormField(
                                 controller: _emailCtrl,
@@ -263,32 +347,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   }
                                   return null;
                                 },
-                                style: _fieldStyle.copyWith(
-                                    color:
-                                        Colors.white.withValues(alpha: 0.6)),
-                                decoration: _decoration(
+                                style: _fieldStyle(colors).copyWith(
+                                    color: colors.textSecondary),
+                                decoration: _decoration(colors,
                                     'you@example.com', Icons.email_rounded),
                               ),
-                              const Padding(
-                                padding: EdgeInsets.only(top: 6, left: 4),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 6, left: 4),
                                 child: Text(
                                   'Email changes go through verification — coming soon.',
                                   style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 11,
-                                    color: AppColors.textTertiary,
+                                    color: colors.textTertiary,
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 20),
-                              _label('Bio'),
+                              _label(colors, 'Bio'),
                               const SizedBox(height: 8),
                               TextFormField(
                                 controller: _bioCtrl,
                                 maxLines: 3,
                                 maxLength: 120,
-                                style: _fieldStyle,
-                                decoration: _decoration(
+                                style: _fieldStyle(colors),
+                                decoration: _decoration(colors,
                                     'Tell us about yourself',
                                     Icons.edit_note_rounded),
                               ),
@@ -302,13 +385,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     gradient: _saving
                                         ? null
                                         : AppColors.goldGradient,
-                                    color: _saving ? AppColors.bgCard : null,
+                                    color: _saving ? colors.bgCard : null,
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: _saving
                                         ? null
                                         : [
                                             BoxShadow(
-                                              color: AppColors.accentGold
+                                              color: colors.accent
                                                   .withValues(alpha: 0.35),
                                               blurRadius: 20,
                                             ),
@@ -316,11 +399,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   ),
                                   child: Center(
                                     child: _saving
-                                        ? const SizedBox(
+                                        ? SizedBox(
                                             width: 22,
                                             height: 22,
                                             child: CircularProgressIndicator(
-                                              color: AppColors.accentGold,
+                                              color: colors.accent,
                                               strokeWidth: 2,
                                             ),
                                           )
@@ -349,45 +432,58 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  static const _fieldStyle = TextStyle(
-      fontFamily: 'Inter', fontSize: 15, color: Colors.white);
-
-  Widget _label(String text) => Text(
-        text,
-        style: const TextStyle(
-          fontFamily: 'Inter',
-          fontWeight: FontWeight.w500,
-          fontSize: 13,
-          color: AppColors.textSecondary,
+  Widget _initialsFallback(AppThemeColors colors) => Center(
+        child: Text(
+          _initials,
+          style: TextStyle(
+            fontFamily: 'Rajdhani',
+            fontWeight: FontWeight.w700,
+            fontSize: 34,
+            color: colors.accent,
+          ),
         ),
       );
 
-  InputDecoration _decoration(String hint, IconData icon) {
+  TextStyle _fieldStyle(AppThemeColors colors) => TextStyle(
+      fontFamily: 'Inter', fontSize: 15, color: colors.textPrimary);
+
+  Widget _label(AppThemeColors colors, String text) => Text(
+        text,
+        style: TextStyle(
+          fontFamily: 'Inter',
+          fontWeight: FontWeight.w500,
+          fontSize: 13,
+          color: colors.textSecondary,
+        ),
+      );
+
+  InputDecoration _decoration(
+      AppThemeColors colors, String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(
-          fontFamily: 'Inter', fontSize: 15, color: AppColors.textTertiary),
-      prefixIcon: Icon(icon, color: AppColors.textTertiary, size: 20),
+      hintStyle: TextStyle(
+          fontFamily: 'Inter', fontSize: 15, color: colors.textTertiary),
+      prefixIcon: Icon(icon, color: colors.textTertiary, size: 20),
       filled: true,
-      fillColor: AppColors.bgCard,
+      fillColor: colors.bgCard,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       counterStyle:
-          const TextStyle(fontFamily: 'Inter', color: AppColors.textTertiary),
+          TextStyle(fontFamily: 'Inter', color: colors.textTertiary),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.borderSubtle, width: 0.5),
+        borderSide: BorderSide(color: colors.borderSubtle, width: 0.5),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.borderSubtle, width: 0.5),
+        borderSide: BorderSide(color: colors.borderSubtle, width: 0.5),
       ),
       disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.borderSubtle, width: 0.5),
+        borderSide: BorderSide(color: colors.borderSubtle, width: 0.5),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.accentGold, width: 1),
+        borderSide: BorderSide(color: colors.accent, width: 1),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),

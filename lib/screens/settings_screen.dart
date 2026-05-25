@@ -198,9 +198,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final auth = context.watch<AuthProvider>();
     final favCount = context.watch<FavoritesProvider>().likedCount;
     final profile = auth.profile;
-    final displayName = profile?.name ??
-        (auth.isGuest ? 'Guest' : profile?.email ?? 'Football Fan');
-    final initials = profile?.initials ?? (auth.isGuest ? 'G' : 'WC');
+    final displayName = auth.isSignedIn
+        ? (profile?.name ?? profile?.email ?? 'WC Fan')
+        : 'Guest Mode';
+    final initials =
+        auth.isSignedIn ? (profile?.initials ?? 'WC') : 'G';
     final isPremium = profile?.isPremium ?? false;
 
     return Scaffold(
@@ -249,7 +251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: AppColors.accentGold, width: 2),
+                            color: colors.accent, width: 2),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(2),
@@ -314,14 +316,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            auth.isGuest
-                                ? 'Browsing as guest'
-                                : (profile?.email ?? 'Football fan'),
+                            auth.isSignedIn
+                                ? (profile?.email ?? 'Signed in')
+                                : 'Browsing as guest',
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 12,
-                              color: AppColors.textSecondary,
+                              color: colors.textSecondary,
                             ),
                           ),
                         ],
@@ -338,8 +340,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         }
                         _push(const EditProfileScreen());
                       },
-                      icon: const Icon(Icons.edit_rounded,
-                          color: AppColors.textSecondary, size: 20),
+                      icon: Icon(Icons.edit_rounded,
+                          color: colors.textSecondary, size: 20),
                     ),
                   ],
                 ),
@@ -555,7 +557,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               _SettingsTile(
                 icon: Icons.share_rounded,
-                label: 'Share with Fans',
+                label: 'Share',
                 onTap: () {
                   HapticFeedback.lightImpact();
                   Share.share(
@@ -685,11 +687,11 @@ Widget _initialsBadge(String initials, AppThemeColors colors) {
     child: Center(
       child: Text(
         initials,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'Rajdhani',
           fontWeight: FontWeight.w700,
           fontSize: 24,
-          color: AppColors.accentGold,
+          color: colors.accent,
         ),
       ),
     ),
@@ -746,6 +748,7 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
       child: Text(
@@ -754,7 +757,7 @@ class _SectionHeader extends StatelessWidget {
           fontFamily: 'Rajdhani',
           fontWeight: FontWeight.w600,
           fontSize: 11,
-          color: AppColors.accentGold.withValues(alpha: 0.8),
+          color: colors.accentMuted,
           letterSpacing: 1.2,
         ),
       ),
@@ -804,8 +807,7 @@ class _SettingsTile extends StatelessWidget {
                   ),
                   child: Icon(
                     icon,
-                    color: iconColor ??
-                        AppColors.accentGold.withValues(alpha: 0.9),
+                    color: iconColor ?? colors.accent,
                     size: 18,
                   ),
                 ),

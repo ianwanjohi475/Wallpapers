@@ -35,6 +35,8 @@ class AppThemeColors {
   final Color borderSubtle;
   final Color shimmerBase;
   final Color shimmerHighlight;
+  final Color accent;
+  final Color accentMuted;
   final bool isDark;
 
   const AppThemeColors({
@@ -47,6 +49,8 @@ class AppThemeColors {
     required this.borderSubtle,
     required this.shimmerBase,
     required this.shimmerHighlight,
+    required this.accent,
+    required this.accentMuted,
     required this.isDark,
   });
 
@@ -65,6 +69,8 @@ class AppThemeColors {
     borderSubtle: Color(0x0FFFFFFF),
     shimmerBase: Color(0xFF141428),
     shimmerHighlight: Color(0xFF2B2B50),
+    accent: Color(0xFFFFD700),
+    accentMuted: Color(0xCCFFD700),
     isDark: true,
   );
 
@@ -78,6 +84,8 @@ class AppThemeColors {
     borderSubtle: Color(0x33C8A800),
     shimmerBase: Color(0xFFE8DFC0),
     shimmerHighlight: Color(0xFFF5EDD8),
+    accent: Color(0xFFB8860B),
+    accentMuted: Color(0xFF8C6500),
     isDark: false,
   );
 }
