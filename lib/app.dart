@@ -15,7 +15,7 @@ class WcWallpapersApp extends StatelessWidget {
     return MaterialApp(
       title: 'WC Wallpapers',
       debugShowCheckedModeBanner: false,
-      themeMode: themeMode,
+      themeMode: themeMode == ThemeMode.system ? ThemeMode.dark : themeMode,
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
       builder: (context, child) {
@@ -28,7 +28,7 @@ class WcWallpapersApp extends StatelessWidget {
           statusBarBrightness: bright,
           systemNavigationBarColor: bright == Brightness.dark
               ? AppColors.bgPrimary
-              : const Color(0xFFF2F2F7),
+              : const Color(0xFFF5F0E8),
           systemNavigationBarIconBrightness:
               bright == Brightness.dark ? Brightness.light : Brightness.dark,
           systemNavigationBarDividerColor: Colors.transparent,
@@ -46,9 +46,9 @@ class WcWallpapersApp extends StatelessWidget {
 
   static ThemeData _buildTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
-    final bg = isDark ? AppColors.bgPrimary : const Color(0xFFF2F2F7);
-    final surface = isDark ? AppColors.bgCard : Colors.white;
-    final onSurface = isDark ? Colors.white : const Color(0xFF0A0A15);
+    final bg = isDark ? AppColors.bgPrimary : const Color(0xFFF5F0E8);
+    final surface = isDark ? AppColors.bgCard : const Color(0xFFFFFBF0);
+    final onSurface = isDark ? Colors.white : const Color(0xFF2A1F00);
 
     return ThemeData(
       brightness: brightness,
@@ -116,24 +116,24 @@ class WcWallpapersApp extends StatelessWidget {
             fontFamily: 'Inter',
             fontWeight: FontWeight.w400,
             fontSize: 15,
-            color: isDark ? AppColors.textSecondary : const Color(0xDD000000)),
+            color: isDark ? AppColors.textSecondary : const Color(0xFF664E00)),
         bodyMedium: TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.w400,
             fontSize: 14,
-            color: isDark ? AppColors.textSecondary : const Color(0xDD000000)),
+            color: isDark ? AppColors.textSecondary : const Color(0xFF664E00)),
         bodySmall: TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.w400,
             fontSize: 12,
-            color: isDark ? AppColors.textSecondary : const Color(0xDD000000)),
+            color: isDark ? AppColors.textSecondary : const Color(0xFF664E00)),
         labelSmall: TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.w400,
             fontSize: 11,
             color: isDark
                 ? AppColors.textTertiary
-                : const Color(0x99000000)),
+                : const Color(0xFF997500)),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {

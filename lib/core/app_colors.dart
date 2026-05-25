@@ -69,15 +69,15 @@ class AppThemeColors {
   );
 
   static const _light = AppThemeColors(
-    bgPrimary: Color(0xFFF2F2F7),
-    bgCard: Color(0xFFFFFFFF),
-    bgElevated: Color(0xFFE8E8F0),
-    textPrimary: Color(0xFF000000),
-    textSecondary: Color(0xDD000000),
-    textTertiary: Color(0x99000000),
-    borderSubtle: Color(0x22000000),
-    shimmerBase: Color(0xFFE0E0EA),
-    shimmerHighlight: Color(0xFFF5F5FA),
+    bgPrimary: Color(0xFFF5F0E8),
+    bgCard: Color(0xFFFFFBF0),
+    bgElevated: Color(0xFFEDE5D0),
+    textPrimary: Color(0xFF2A1F00),
+    textSecondary: Color(0xFF664E00),
+    textTertiary: Color(0xFF997500),
+    borderSubtle: Color(0x33C8A800),
+    shimmerBase: Color(0xFFE8DFC0),
+    shimmerHighlight: Color(0xFFF5EDD8),
     isDark: false,
   );
 }
