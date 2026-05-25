@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../core/app_colors.dart';
 import '../models/wallpaper_model.dart';
+import '../widgets/motion_image.dart';
 import '../widgets/shimmer_card.dart';
 import '../core/utils/formatters.dart';
 
@@ -30,24 +30,11 @@ class NewTodayCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
-            CachedNetworkImage(
+            MotionImage(
               imageUrl: wallpaper.gridUrl,
-              width: 140,
               height: 200,
-              fit: BoxFit.cover,
+              phase: motionPhase(wallpaper.id),
               memCacheWidth: 400,
-              placeholder: (_, __) => const ShimmerCard(height: 200),
-              errorWidget: (context, __, ___) {
-                final c = AppThemeColors.of(context);
-                return Container(
-                  height: 200,
-                  color: c.bgCard,
-                  child: Icon(
-                    Icons.broken_image_rounded,
-                    color: c.textTertiary,
-                  ),
-                );
-              },
             ),
             Positioned.fill(
               child: DecoratedBox(

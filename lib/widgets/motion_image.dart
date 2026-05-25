@@ -3,23 +3,55 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../core/app_colors.dart';
 import 'shimmer_card.dart';
 
-/// Wraps a network image with a continuous slow Ken Burns / parallax motion:
-/// a subtle scale + drift loop that gives photos a living, 3D feel.
+/// Wraps a network image with a continuous Ken Burns / parallax effect:
+/// slow scale + diagonal drift that gives photos a living, 3D feel.
 ///
-/// [phase] (0.0–1.0) offsets the animation start so multiple cards on screen
-/// are never perfectly in sync, making the effect look organic.
+/// [phase] (0.0–1.0) offsets the animation start — derive it from the
+/// wallpaper id so every image in a grid drifts independently:
+///   phase: (wallpaper.id.hashCode.abs() % 1000) / 1000.0
+///
+/// [minScale]/[maxScale] control zoom depth. Keep minScale high enough
+/// that the image edges never show during the drift (minScale >= 1.04).
+///
+/// For full-screen views pass softer values (minScale:1.03, maxScale:1.06,
+/// larger drift, slower duration) for a more cinematic feel.
 class MotionImage extends StatefulWidget {
   final String imageUrl;
   final double height;
   final double phase;
   final int memCacheWidth;
+  final double minScale;
+  final double maxScale;
+  final double driftX;
+  final double driftY;
+  final Duration cycleDuration;
 
   const MotionImage({
     super.key,
     required this.imageUrl,
     required this.height,
     this.phase = 0.0,
+    this.memCacheWidth = 800,
+    // Card defaults — snappy enough to feel alive on small thumbnails.
+    this.minScale = 1.06,
+    this.maxScale = 1.13,
+    this.driftX = 9.0,
+    this.driftY = 5.0,
+    this.cycleDuration = const Duration(seconds: 9),
+  });
+
+  /// Preset for full-screen detail / hero images — slower & more cinematic.
+  const MotionImage.fullscreen({
+    super.key,
+    required this.imageUrl,
+    required this.height,
+    this.phase = 0.0,
     this.memCacheWidth = 1080,
+    this.minScale = 1.03,
+    this.maxScale = 1.07,
+    this.driftX = 14.0,
+    this.driftY = 8.0,
+    this.cycleDuration = const Duration(seconds: 14),
   });
 
   @override
@@ -39,23 +71,20 @@ class _MotionImageState extends State<MotionImage>
 
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 9),
+      duration: widget.cycleDuration,
     );
 
-    // Scale gently from 1.06 → 1.13 so edges never show during the drift.
-    _scale = Tween(begin: 1.06, end: 1.13).animate(
+    _scale = Tween(begin: widget.minScale, end: widget.maxScale).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+    _dx = Tween(begin: -widget.driftX, end: widget.driftX).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+    _dy = Tween(begin: -widget.driftY, end: widget.driftY).animate(
       CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
     );
 
-    // Drift diagonally — enough to feel alive, not enough to feel jittery.
-    _dx = Tween(begin: -9.0, end: 9.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
-    _dy = Tween(begin: -5.0, end: 5.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
-
-    // Jump to the requested phase so cards are out of sync with each other.
+    // Jump to this image's unique phase so no two images drift in sync.
     _ctrl.value = widget.phase;
     _ctrl.repeat(reverse: true);
   }
@@ -99,3 +128,7 @@ class _MotionImageState extends State<MotionImage>
     );
   }
 }
+
+/// Returns a deterministic animation phase (0.0–1.0) from a wallpaper id.
+/// Every id always maps to the same phase, so the grid never resets.
+double motionPhase(String id) => (id.hashCode.abs() % 1000) / 1000.0;

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../core/app_colors.dart';
@@ -269,10 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 6),
-                                  child: _FeaturedCard(
-                                    wallpaper: w,
-                                    phase: i / data.featured.length,
-                                  ),
+                                  child: _FeaturedCard(wallpaper: w),
                                 );
                               },
                             ),
@@ -727,8 +723,7 @@ class _HomeError extends StatelessWidget {
 
 class _FeaturedCard extends StatelessWidget {
   final WallpaperModel wallpaper;
-  final double phase;
-  const _FeaturedCard({required this.wallpaper, this.phase = 0.0});
+  const _FeaturedCard({required this.wallpaper});
 
   IconData _catIcon(String cat) {
     switch (cat) {
@@ -782,7 +777,7 @@ class _FeaturedCard extends StatelessWidget {
               MotionImage(
                 imageUrl: w.previewUrl,
                 height: 210,
-                phase: phase,
+                phase: motionPhase(w.id),
               ),
               Positioned.fill(
                 child: DecoratedBox(
@@ -907,17 +902,11 @@ class _NewTodayCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              CachedNetworkImage(
+              MotionImage(
                 imageUrl: wallpaper.gridUrl,
-                fit: BoxFit.cover,
+                height: 160,
+                phase: motionPhase(wallpaper.id),
                 memCacheWidth: 400,
-                fadeInDuration: const Duration(milliseconds: 300),
-                placeholder: (_, __) => const ShimmerCard(height: 160),
-                errorWidget: (_, __, ___) => Container(
-                  color: AppColors.bgCard,
-                  child: const Icon(Icons.broken_image_rounded,
-                      color: AppColors.textTertiary),
-                ),
               ),
               Positioned.fill(
                 child: DecoratedBox(

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../core/app_colors.dart';
@@ -13,6 +12,7 @@ import '../services/download_service.dart';
 import '../widgets/auth_required_sheet.dart';
 import '../widgets/glass_pill.dart';
 import '../widgets/rewarded_ad_sheet.dart';
+import '../widgets/motion_image.dart';
 import '../widgets/shimmer_card.dart';
 
 String _formatCount(int n) {
@@ -157,23 +157,10 @@ class _DetailScreenState extends State<DetailScreen>
             child: SizedBox(
               width: double.infinity,
               height: MediaQuery.of(context).size.height,
-              child: CachedNetworkImage(
+              child: MotionImage.fullscreen(
                 imageUrl: w.previewUrl,
-                fit: BoxFit.cover,
-                memCacheWidth: 1080,
-                fadeInDuration: const Duration(milliseconds: 300),
-                placeholder: (_, __) => ShimmerCard(
-                    height: MediaQuery.of(context).size.height),
-                errorWidget: (context, __, ___) {
-                  final c = AppThemeColors.of(context);
-                  return Container(
-                    color: c.bgCard,
-                    child: Center(
-                      child: Icon(Icons.broken_image_rounded,
-                          color: c.textTertiary, size: 48),
-                    ),
-                  );
-                },
+                height: MediaQuery.of(context).size.height,
+                phase: motionPhase(w.id),
               ),
             ),
           ),
