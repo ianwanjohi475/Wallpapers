@@ -16,6 +16,7 @@ class CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -25,11 +26,15 @@ class CategoryChip extends StatelessWidget {
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.accentGold : AppColors.bgGlass,
+          color: isActive
+              ? AppColors.accentGold
+              : colors.isDark
+                  ? AppColors.bgGlass
+                  : colors.bgCard,
           borderRadius: BorderRadius.circular(20),
           border: isActive
               ? null
-              : Border.all(color: AppColors.borderSubtle, width: 0.5),
+              : Border.all(color: colors.borderSubtle, width: 0.5),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -37,7 +42,7 @@ class CategoryChip extends StatelessWidget {
             Icon(
               iconFor(label),
               size: 13,
-              color: isActive ? AppColors.bgPrimary : AppColors.textSecondary,
+              color: isActive ? AppColors.bgPrimary : colors.textSecondary,
             ),
             const SizedBox(width: 4),
             Text(
@@ -46,7 +51,7 @@ class CategoryChip extends StatelessWidget {
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w500,
                 fontSize: 12,
-                color: isActive ? AppColors.bgPrimary : AppColors.textSecondary,
+                color: isActive ? AppColors.bgPrimary : colors.textSecondary,
               ),
             ),
           ],

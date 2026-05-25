@@ -13,6 +13,7 @@ class SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppThemeColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -24,7 +25,7 @@ class SettingsSection extends StatelessWidget {
               fontFamily: 'Rajdhani',
               fontWeight: FontWeight.w600,
               fontSize: 11,
-              color: AppColors.accentGold.withValues(alpha: 0.7),
+              color: colors.accentMuted,
               letterSpacing: 1.2,
             ),
           ),
@@ -32,7 +33,7 @@ class SettingsSection extends StatelessWidget {
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: AppColors.bgCard,
+            color: colors.bgCard,
             borderRadius: BorderRadius.circular(16),
           ),
           clipBehavior: Clip.antiAlias,
@@ -43,7 +44,7 @@ class SettingsSection extends StatelessWidget {
                 if (i < tiles.length - 1)
                   Container(
                     height: 0.5,
-                    color: AppColors.borderSubtle,
+                    color: colors.borderSubtle,
                     margin: const EdgeInsets.only(left: 56),
                   ),
               ],

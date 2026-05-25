@@ -142,17 +142,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       snap: true,
                       backgroundColor: Colors.transparent,
                       surfaceTintColor: Colors.transparent,
-                      title: const Row(
+                      title: Row(
                         children: [
-                          WCWallpapersLogo(size: 36),
-                          SizedBox(width: 10),
+                          const WCWallpapersLogo(size: 36),
+                          const SizedBox(width: 10),
                           Text(
                             'WALLPAPERS',
                             style: TextStyle(
                               fontFamily: 'Rajdhani',
                               fontWeight: FontWeight.w700,
                               fontSize: 16,
-                              color: AppColors.accentGold,
+                              color: colors.isDark
+                                  ? AppColors.accentGold
+                                  : colors.textPrimary,
                               letterSpacing: 1.5,
                             ),
                           ),
@@ -229,20 +231,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Padding(
-                            padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                             child: Row(
                               children: [
                                 Icon(Icons.local_fire_department_rounded,
-                                    color: AppColors.accentGold, size: 14),
-                                SizedBox(width: 4),
+                                    color: colors.isDark
+                                        ? AppColors.accentGold
+                                        : colors.accentMuted,
+                                    size: 14),
+                                const SizedBox(width: 4),
                                 Text(
                                   'FEATURED',
                                   style: TextStyle(
                                     fontFamily: 'Rajdhani',
                                     fontWeight: FontWeight.w700,
                                     fontSize: 13,
-                                    color: AppColors.accentGold,
+                                    color: colors.isDark
+                                        ? AppColors.accentGold
+                                        : colors.accentMuted,
                                     letterSpacing: 1.5,
                                   ),
                                 ),
@@ -271,11 +278,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: SmoothPageIndicator(
                               controller: _carouselCtrl,
                               count: data.featured.length,
-                              effect: const ExpandingDotsEffect(
+                              effect: ExpandingDotsEffect(
                                 dotWidth: 5,
                                 dotHeight: 5,
                                 activeDotColor: AppColors.accentGold,
-                                dotColor: Color(0x33FFFFFF),
+                                dotColor: colors.isDark
+                                    ? const Color(0x33FFFFFF)
+                                    : const Color(0x33000000),
                               ),
                             ),
                           ),
@@ -312,12 +321,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     );
                                   },
-                                  child: const Text(
+                                  child: Text(
                                     'See all',
                                     style: TextStyle(
                                       fontFamily: 'Inter',
                                       fontSize: 13,
-                                      color: AppColors.accentGold,
+                                      color: colors.isDark
+                                          ? AppColors.accentGold
+                                          : colors.accentMuted,
                                     ),
                                   ),
                                 ),
@@ -417,12 +428,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                               milliseconds: 350),
                                         ));
                                   },
-                                  child: const Text(
+                                  child: Text(
                                     'See all',
                                     style: TextStyle(
                                       fontFamily: 'Inter',
                                       fontSize: 13,
-                                      color: AppColors.accentGold,
+                                      color: colors.isDark
+                                          ? AppColors.accentGold
+                                          : colors.accentMuted,
                                     ),
                                   ),
                                 ),
@@ -464,8 +477,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                             child: Row(
                               children: [
-                                const Icon(Icons.emoji_events_rounded,
-                                    color: AppColors.accentGold, size: 16),
+                                Icon(Icons.emoji_events_rounded,
+                                    color: colors.isDark
+                                        ? AppColors.accentGold
+                                        : colors.accentMuted,
+                                    size: 16),
                                 const SizedBox(width: 6),
                                 Text(
                                   'Most Downloaded',
@@ -494,12 +510,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                               milliseconds: 350),
                                         ));
                                   },
-                                  child: const Text(
+                                  child: Text(
                                     'See all',
                                     style: TextStyle(
                                       fontFamily: 'Inter',
                                       fontSize: 13,
-                                      color: AppColors.accentGold,
+                                      color: colors.isDark
+                                          ? AppColors.accentGold
+                                          : colors.accentMuted,
                                     ),
                                   ),
                                 ),
