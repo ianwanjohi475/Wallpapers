@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
 import '../models/wallpaper_model.dart';
 import '../providers/favorites_provider.dart';
 import '../screens/detail_screen.dart';
-import 'motion_image.dart';
 import 'shimmer_card.dart';
 
 class WallpaperGridCard extends StatefulWidget {
@@ -101,11 +101,22 @@ class _WallpaperGridCardState extends State<WallpaperGridCard>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                MotionImage(
+                CachedNetworkImage(
                   imageUrl: w.gridUrl,
-                  height: widget.height,
-                  phase: motionPhase(w.id),
+                  fit: BoxFit.cover,
                   memCacheWidth: 600,
+                  fadeInDuration: const Duration(milliseconds: 250),
+                  placeholder: (_, __) => ShimmerCard(height: widget.height),
+                  errorWidget: (context, __, ___) {
+                    final colors = AppThemeColors.of(context);
+                    return Container(
+                      color: colors.bgCard,
+                      child: Center(
+                        child: Icon(Icons.broken_image_rounded,
+                            color: colors.textTertiary, size: 32),
+                      ),
+                    );
+                  },
                 ),
                 if (w.isPremium)
                   Positioned.fill(

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../core/app_colors.dart';
@@ -902,11 +903,17 @@ class _NewTodayCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              MotionImage(
+              CachedNetworkImage(
                 imageUrl: wallpaper.gridUrl,
-                height: 160,
-                phase: motionPhase(wallpaper.id),
+                fit: BoxFit.cover,
                 memCacheWidth: 400,
+                fadeInDuration: const Duration(milliseconds: 300),
+                placeholder: (_, __) => const ShimmerCard(height: 160),
+                errorWidget: (_, __, ___) => Container(
+                  color: AppColors.bgCard,
+                  child: const Icon(Icons.broken_image_rounded,
+                      color: AppColors.textTertiary),
+                ),
               ),
               Positioned.fill(
                 child: DecoratedBox(
