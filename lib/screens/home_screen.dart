@@ -13,6 +13,7 @@ import '../services/wallpaper_service.dart';
 import '../widgets/ad_banner.dart';
 import '../widgets/wc_wallpapers_logo.dart';
 import '../widgets/glass_pill.dart';
+import '../widgets/motion_image.dart';
 import '../widgets/responsive_masonry.dart';
 import '../widgets/shimmer_card.dart';
 import 'browse_screen.dart';
@@ -268,7 +269,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 6),
-                                  child: _FeaturedCard(wallpaper: w),
+                                  child: _FeaturedCard(
+                                    wallpaper: w,
+                                    phase: i / data.featured.length,
+                                  ),
                                 );
                               },
                             ),
@@ -723,7 +727,8 @@ class _HomeError extends StatelessWidget {
 
 class _FeaturedCard extends StatelessWidget {
   final WallpaperModel wallpaper;
-  const _FeaturedCard({required this.wallpaper});
+  final double phase;
+  const _FeaturedCard({required this.wallpaper, this.phase = 0.0});
 
   IconData _catIcon(String cat) {
     switch (cat) {
@@ -774,19 +779,10 @@ class _FeaturedCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              CachedNetworkImage(
+              MotionImage(
                 imageUrl: w.previewUrl,
-                fit: BoxFit.cover,
-                memCacheWidth: 1080,
-                fadeInDuration: const Duration(milliseconds: 300),
-                placeholder: (_, __) => const ShimmerCard(height: 210),
-                errorWidget: (_, __, ___) => Container(
-                  color: AppColors.bgCard,
-                  child: const Center(
-                    child: Icon(Icons.broken_image_rounded,
-                        color: AppColors.textTertiary),
-                  ),
-                ),
+                height: 210,
+                phase: phase,
               ),
               Positioned.fill(
                 child: DecoratedBox(
